@@ -11,7 +11,7 @@ const generateToken = (user) => {
 
 // POST /api/auth/register
 // Citizen registration only
-exports.registerCitizen = async (req, res) => {
+exports.registerCitizens = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
