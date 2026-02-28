@@ -19,7 +19,7 @@ const seedAdmin = async () => {
         const adminData = {
             name: "Super Admin",
             email: "admin@greenloop.com",
-            password: "adminpassword123", // Automatically hashed by User.js pre-save hook
+            password: "admin123@", // Automatically hashed by User.js pre-save hook
             role: "admin",
         };
 
