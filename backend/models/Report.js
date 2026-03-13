@@ -21,6 +21,10 @@ const reportSchema = new mongoose.Schema(
                 required: true,
             },
         },
+        description: {
+            type: String,
+            default: "",
+        },
         aiValidation: {
             isValid: {
                 type: Boolean,

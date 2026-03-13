@@ -9,7 +9,7 @@ exports.createReport = async (req, res) => {
             return res.status(400).json({ message: "Image file is required" });
         }
 
-        const { lat, lng } = req.body;
+        const { lat, lng, description } = req.body;
         if (!lat || !lng) {
             return res.status(400).json({ message: "GPS coordinates (lat, lng) are required" });
         }
@@ -23,6 +23,7 @@ exports.createReport = async (req, res) => {
             citizenId: req.user.id,
             imageUrl: imageUrl,
             gps: { lat: Number(lat), lng: Number(lng) },
+            description: description || "",
             status: "pending_validation"
         });
 
@@ -60,6 +61,17 @@ exports.getAllReports = async (req, res) => {
         res.status(200).json({ reports });
     } catch (error) {
         console.error("Fetch Reports Error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+// GET /api/reports/my
+// Fetch reports for the logged-in citizen
+exports.getMyReports = async (req, res) => {
+    try {
+        const reports = await Report.find({ citizenId: req.user.id }).sort({ createdAt: -1 });
+        res.status(200).json({ reports });
+    } catch (error) {
+        console.error("Fetch My Reports Error:", error);
         res.status(500).json({ message: error.message });
     }
 };

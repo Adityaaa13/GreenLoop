@@ -3,7 +3,7 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const authorizeRoles = require("../middleware/roleAuth");
 const upload = require("../services/uploadService");
-const { createReport } = require("../controllers/reportController");
+const { createReport, getMyReports, getAllReports } = require("../controllers/reportController");
 
 // 1. Citizen uploads dump image + GPS
 // Only citizen role allowed
@@ -15,13 +15,21 @@ router.post(
     createReport
 );
 
-// 2. Admin monitors reports
+// 2. Citizen fetches their own reports
+router.get(
+    "/my",
+    auth,
+    authorizeRoles("citizen"),
+    getMyReports
+);
+
+// 3. Admin monitors reports
 // Only admin role allowed
 router.get(
     "/",
     auth,
     authorizeRoles("admin"),
-    require("../controllers/reportController").getAllReports
+    getAllReports
 );
 
 module.exports = router;
