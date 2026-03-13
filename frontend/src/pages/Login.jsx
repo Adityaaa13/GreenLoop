@@ -15,8 +15,15 @@ const Login = () => {
         e.preventDefault();
         setError("");
         try {
-            await login(form.email, form.password);
-            navigate("/dashboard");
+            const data = await login(form.email, form.password);
+            
+            // Route based on role
+            const role = data.user.role;
+            if (role === "admin") navigate("/admin");
+            else if (role === "worker") navigate("/worker");
+            else if (role === "team_lead") navigate("/team-lead");
+            else navigate("/citizen"); // default citizen
+            
         } catch (err) {
             setError(err.response?.data?.message || "Login failed");
         }

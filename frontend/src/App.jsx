@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import MainLayout from "./layouts/MainLayout";
+import DashboardLayout from "./layouts/DashboardLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -19,22 +19,44 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Protected routes inside MainLayout */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/citizen" element={<CitizenDashboard />} />
-            <Route path="/team-lead" element={<TeamLeadDashboard />} />
-            <Route path="/worker" element={<WorkerDashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+          {/* Protected routes inside DashboardLayout */}
+          <Route element={<DashboardLayout />}>
+            <Route
+              path="/citizen"
+              element={
+                <ProtectedRoute allowedRoles={["citizen"]}>
+                  <CitizenDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/team-lead"
+              element={
+                <ProtectedRoute allowedRoles={["team_lead"]}>
+                  <TeamLeadDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/worker"
+              element={
+                <ProtectedRoute allowedRoles={["worker"]}>
+                  <WorkerDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
           </Route>
 
           {/* Catch-all */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

@@ -16,7 +16,7 @@ const Register = () => {
         setError("");
         try {
             await register(form.name, form.email, form.password);
-            navigate("/dashboard");
+            navigate("/citizen");
         } catch (err) {
             setError(err.response?.data?.message || "Registration failed");
         }
@@ -26,10 +26,10 @@ const Register = () => {
         <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 px-4">
             <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
                 <h2 className="text-3xl font-bold text-gray-800 text-center mb-2">
-                    Create account
+                    Register as a Citizen
                 </h2>
                 <p className="text-gray-500 text-center mb-8">
-                    Join GreenLoop today
+                    Join GreenLoop to report issues
                 </p>
 
                 {error && (
