@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Report = require("../models/Report");
 const Task = require("../models/Task");
 const User = require("../models/User");
@@ -69,7 +70,7 @@ exports.getTeamLeadDashboard = async (req, res) => {
 
         // Worker Performance Aggregation
         const workerPerformance = await Task.aggregate([
-            { $match: { teamLeadId: new require("mongoose").Types.ObjectId(teamLeadId) } },
+            { $match: { teamLeadId: new mongoose.Types.ObjectId(teamLeadId) } },
             {
                 $group: {
                     _id: "$workerId",
