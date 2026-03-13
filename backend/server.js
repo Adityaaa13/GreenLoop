@@ -1,3 +1,7 @@
+// Fix DNS resolution for MongoDB Atlas on restricted networks
+const dns = require("node:dns");
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
 const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
