@@ -17,10 +17,10 @@ const DashboardLayout = () => {
             case "team_lead": return [{ label: "Team Management", path: "/team-lead", icon: "👥" }];
             case "citizen": return [
                 { label: "Dashboard Hub", path: "/citizen", icon: "🏠" },
-                { label: "Submit New Report", path: "/citizen", icon: "📷" },
-                { label: "My Reports History", path: "/citizen", icon: "🗂️" },
-                { label: "Community Stats", path: "/citizen", icon: "🌍" },
-                { label: "Help & Guides", path: "/citizen", icon: "ℹ️" },
+                { label: "Submit New Report", path: "/citizen/submit", icon: "📷" },
+                { label: "My Reports History", path: "/citizen/reports", icon: "🗂️" },
+                { label: "Community Stats", path: "/citizen/stats", icon: "🌍" },
+                { label: "Help & Guides", path: "/citizen/help", icon: "ℹ️" },
             ];
             default: return [];
         }
@@ -64,7 +64,7 @@ const DashboardLayout = () => {
                 {/* Nav links */}
                 <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
                     {currentNavItems.map((item, index) => {
-                        const isActive = location.pathname === item.path && index === 0; // Highlight only the first for now as they point to the same page
+                        const isActive = location.pathname === item.path || (location.pathname === "/citizen" && item.path === "/citizen" && index === 0);
                         return (
                             <Link
                                 key={item.label}
