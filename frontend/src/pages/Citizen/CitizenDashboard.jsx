@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 
 const CitizenDashboard = () => {
+    const { user } = useAuth();
     // Dashboard Stats
     const [stats, setStats] = useState({ totalSubmitted: 0, verified: 0, rejected: 0, pending: 0 });
     const [reports, setReports] = useState([]);
@@ -133,21 +135,59 @@ const CitizenDashboard = () => {
         );
     };
 
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 18) return "Good afternoon";
+        return "Good evening";
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 animate-in fade-in duration-500">
+            {/* ── Welcome Banner ── */}
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-500 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+                <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-teal-900 opacity-20 rounded-full blur-2xl"></div>
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            {getGreeting()}, {user?.name || "Citizen"}! 👋
+                        </h1>
+                        <p className="mt-2 text-emerald-50 text-sm md:text-base max-w-2xl">
+                            Welcome to your GreenLoop hub. Help us keep the community clean by reporting illegal dumping, tracking your impact, and earning rewards.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             {/* ── Summary Cards ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h3 className="text-sm font-medium text-gray-500">Total Reports</h3>
-                    <p className="mt-2 text-3xl font-bold text-gray-900">{loadingStats ? "-" : stats.totalSubmitted}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100 flex items-center gap-4">
+                    <div className="p-4 bg-blue-50 text-blue-600 rounded-xl">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Reports</h3>
+                        <p className="mt-1 text-3xl font-black text-gray-900">{loadingStats ? "-" : stats.totalSubmitted}</p>
+                    </div>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-green-100">
-                    <h3 className="text-sm font-medium text-green-600">Verified Dumps</h3>
-                    <p className="mt-2 text-3xl font-bold text-gray-900">{loadingStats ? "-" : stats.verified}</p>
+                <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100 flex items-center gap-4">
+                    <div className="p-4 bg-emerald-50 text-emerald-600 rounded-xl">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-semibold text-green-600 uppercase tracking-wider">Verified Clean</h3>
+                        <p className="mt-1 text-3xl font-black text-gray-900">{loadingStats ? "-" : stats.verified}</p>
+                    </div>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-red-100">
-                    <h3 className="text-sm font-medium text-red-600">Rejected</h3>
-                    <p className="mt-2 text-3xl font-bold text-gray-900">{loadingStats ? "-" : stats.rejected}</p>
+                <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100 flex items-center gap-4">
+                    <div className="p-4 bg-gray-50 text-gray-600 rounded-xl">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Pending/Rejected</h3>
+                        <p className="mt-1 text-3xl font-black text-gray-900">{loadingStats ? "-" : stats.pending + stats.rejected}</p>
+                    </div>
                 </div>
             </div>
 
