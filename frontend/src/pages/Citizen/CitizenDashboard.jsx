@@ -93,7 +93,7 @@ const CitizenDashboard = () => {
         formData.append("lng", location.lng);
 
         try {
-            await api.post("/reports", formData, {
+            const { data } = await api.post("/reports", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
             // Reset form
@@ -105,10 +105,11 @@ const CitizenDashboard = () => {
             // Refresh data
             fetchDashboardStats();
             fetchMyReports();
-            alert("Report submitted successfully!");
+            alert(data.message || "Report submitted successfully!");
         } catch (error) {
             console.error("Error submitting report:", error);
-            alert("Failed to submit report. Please try again.");
+            const errMsg = error.response?.data?.message || "Failed to submit report. Please try again.";
+            alert(errMsg);
         } finally {
             setSubmitting(false);
         }
@@ -252,7 +253,9 @@ const CitizenDashboard = () => {
                                                 {getStatusBadge(report.status)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {report.aiValidation?.confidence ? `${report.aiValidation.confidence}%` : "-"}
+                                                {report.aiValidation?.confidence != null
+                                                    ? `${Math.round(report.aiValidation.confidence * 100)}%`
+                                                    : "-"}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 {report.aiValidation?.reasoning ? (

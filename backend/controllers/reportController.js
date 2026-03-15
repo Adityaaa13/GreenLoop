@@ -15,38 +15,44 @@ exports.createReport = async (req, res) => {
         }
 
         // 2. Cloudinary handles upload via Multer (in the router)
-        // Here we just grab the secure_url provided by multer-storage-cloudinary
         const imageUrl = req.file.path;
 
-        // Create preliminary report (pending_validation)
-        let report = await Report.create({
+        // 3. Run AI validation SYNCHRONOUSLY so the response includes the result
+        console.log(`[Report] Starting AI validation for image: ${imageUrl}`);
+        let aiResult;
+        try {
+            aiResult = await validateDumpImage(imageUrl);
+            console.log(`[Report] AI validation complete:`, aiResult);
+        } catch (aiError) {
+            console.error("[Report] AI validation threw:", aiError);
+            aiResult = {
+                isValid: false,
+                reasoning: `AI validation error: ${aiError.message}`,
+                confidence: 0
+            };
+        }
+
+        // 4. Create report with AI result already populated
+        const report = await Report.create({
             citizenId: req.user.id,
             imageUrl: imageUrl,
             gps: { lat: Number(lat), lng: Number(lng) },
             description: description || "",
-            status: "pending_validation"
+            status: aiResult.isValid ? "verified_dump" : "rejected",
+            aiValidation: {
+                isValid: aiResult.isValid,
+                reasoning: aiResult.reasoning,
+                confidence: aiResult.confidence
+            }
         });
-
-        // We can respond early that upload succeeded, and let AI work in background
-        // Or we can await AI (usually ~2-5 seconds). To keep it simple, we await the result.
-
-        // 3. Send image URL to AI validation service
-        const aiResult = await validateDumpImage(imageUrl);
-
-        // 4 & 5. Save AI result and update status
-        report.aiValidation = {
-            isValid: aiResult.isValid,
-            reasoning: aiResult.reasoning,
-            confidence: aiResult.confidence
-        };
-        report.status = aiResult.isValid ? "verified_dump" : "rejected";
-
-        await report.save();
 
         res.status(201).json({
-            message: "Report processed successfully",
+            message: aiResult.isValid
+                ? "Report verified! AI confirmed this is a valid garbage dump."
+                : "Report analyzed. AI could not verify this as a valid garbage dump.",
             report
         });
+
     } catch (error) {
         console.error("Create Report Error:", error);
         res.status(500).json({ message: error.message });
@@ -64,6 +70,7 @@ exports.getAllReports = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 // GET /api/reports/my
 // Fetch reports for the logged-in citizen
 exports.getMyReports = async (req, res) => {
