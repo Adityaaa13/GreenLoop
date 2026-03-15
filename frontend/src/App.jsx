@@ -4,7 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
+import Landing from "./pages/Landing";
 import CitizenDashboard from "./pages/Citizen/CitizenDashboard";
 import SubmitReport from "./pages/Citizen/SubmitReport";
 import MyReports from "./pages/Citizen/MyReports";
@@ -92,8 +92,8 @@ function App() {
           </Route>
 
           {/* Catch-all */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
