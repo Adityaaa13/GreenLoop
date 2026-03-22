@@ -8,14 +8,21 @@ GreenLoop is a full-stack web application that empowers citizens to report illeg
 
 ## 🚀 Tech Stack
 
-### Backend
+### Backend (Node.js)
+
 - **Runtime:** Node.js
 - **Framework:** Express.js
 - **Database:** MongoDB Atlas (Mongoose ODM)
 - **Authentication:** JWT (JSON Web Tokens) + bcryptjs
-- **AI:** Google Gemini 2.0 Flash (via LangChain)
 - **File Storage:** Cloudinary (image uploads)
 - **Dev Tools:** Nodemon
+
+### AI Microservice (Python)
+
+- **Framework:** FastAPI + Uvicorn
+- **AI Model:** Google Gemini 2.5 Flash (via LangChain)
+- **Validation:** Confidence-based routing (auto-accept / pending review / reject)
+- **Storage:** SQLite + local blob storage
 
 ---
 
@@ -25,34 +32,42 @@ GreenLoop is a full-stack web application that empowers citizens to report illeg
 GreenLoop/
 ├── backend/
 │   ├── config/
-│   │   └── db.js                  # MongoDB connection
+│   │   ├── db.js                        # MongoDB connection
+│   │   └── cloudinary.js                # Cloudinary config
 │   ├── controllers/
-│   │   ├── authController.js      # Login & citizen registration
-│   │   ├── adminController.js     # Admin user management
-│   │   ├── reportController.js    # Garbage dump report CRUD
-│   │   ├── taskController.js      # Cleanup task management
-│   │   └── dashboardController.js # Analytics & stats
+│   │   ├── authController.js            # Login & citizen registration
+│   │   ├── adminController.js           # Admin user management
+│   │   ├── reportController.js          # Garbage dump report CRUD
+│   │   ├── taskController.js            # Cleanup task management
+│   │   └── dashboardController.js       # Analytics & stats
 │   ├── middleware/
-│   │   ├── auth.js                # JWT authentication middleware
-│   │   └── roleAuth.js            # Role-based access control
+│   │   ├── auth.js                      # JWT authentication middleware
+│   │   └── roleAuth.js                  # Role-based access control
 │   ├── models/
-│   │   ├── User.js                # User model (citizen, worker, team_lead, admin)
-│   │   ├── Report.js              # Garbage dump report model
-│   │   └── Task.js                # Cleanup task model
+│   │   ├── User.js                      # User model
+│   │   ├── Report.js                    # Garbage dump report model
+│   │   └── Task.js                      # Cleanup task model
 │   ├── routes/
-│   │   ├── authRoutes.js          # /api/auth
-│   │   ├── adminRoutes.js         # /api/admin
-│   │   ├── reportRoutes.js        # /api/reports
-│   │   ├── taskRoutes.js          # /api/tasks
-│   │   ├── uploadRoutes.js        # /api/upload
-│   │   └── dashboardRoutes.js     # /api/dashboard
+│   │   ├── authRoutes.js                # /api/auth
+│   │   ├── adminRoutes.js               # /api/admin
+│   │   ├── reportRoutes.js              # /api/reports
+│   │   ├── taskRoutes.js                # /api/tasks
+│   │   ├── uploadRoutes.js              # /api/upload
+│   │   └── dashboardRoutes.js           # /api/dashboard
 │   ├── services/
-│   │   ├── aiService.js           # Gemini AI validation logic
-│   │   └── uploadService.js       # Cloudinary upload config
-│   ├── seed-admin.js              # Seed script for admin user
-│   ├── server.js                  # App entry point
-│   └── .env.example               # Environment variable template
-├── frontend/                      # (Coming soon)
+│   │   ├── aiService.js                 # Calls Python AI microservice
+│   │   ├── uploadService.js             # Cloudinary upload config
+│   │   └── garbage_image_tester/        # Python AI microservice
+│   │       ├── models/                  # DB models (submission, audit, review)
+│   │       ├── services/                # AI validation, decision engine, storage
+│   │       ├── storage/                 # Blob storage for accepted images
+│   │       ├── main.py                  # FastAPI entry point (runs on :8000)
+│   │       ├── requirements.txt
+│   │       └── .env.example
+│   ├── seed-admin.js                    # Seed script for admin user
+│   ├── server.js                        # App entry point
+│   └── .env.example
+├── frontend/
 └── README.md
 ```
 
@@ -60,121 +75,178 @@ GreenLoop/
 
 ## 👥 User Roles
 
-| Role | Description |
-|------|-------------|
-| **Citizen** | Reports garbage dumps with images & GPS location |
+| Role          | Description                                       |
+| ------------- | ------------------------------------------------- |
+| **Citizen**   | Reports garbage dumps with images & GPS location  |
 | **Team Lead** | Reviews reports, assigns cleanup tasks to workers |
-| **Worker** | Performs cleanups, submits proof images |
-| **Admin** | Manages all users, monitors system-wide stats |
+| **Worker**    | Performs cleanups, submits proof images           |
+| **Admin**     | Manages all users, monitors system-wide stats     |
 
 ---
 
 ## 🔌 API Endpoints
 
 ### Auth (`/api/auth`)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/register` | Citizen registration |
-| POST | `/login` | Login (all roles) |
+
+| Method | Endpoint    | Description          |
+| ------ | ----------- | -------------------- |
+| POST   | `/register` | Citizen registration |
+| POST   | `/login`    | Login (all roles)    |
 
 ### Reports (`/api/reports`)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/` | Submit a new dump report (citizen) |
-| GET | `/` | Get reports (filtered by role) |
+
+| Method | Endpoint | Description                        |
+| ------ | -------- | ---------------------------------- |
+| POST   | `/`      | Submit a new dump report (citizen) |
+| GET    | `/`      | Get reports (filtered by role)     |
 
 ### Tasks (`/api/tasks`)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/` | Create/assign a cleanup task (team lead) |
-| GET | `/` | Get tasks (filtered by role) |
-| PATCH | `/:id/status` | Update task status |
-| PATCH | `/:id/cleanup` | Submit cleanup proof with image |
+
+| Method | Endpoint       | Description                              |
+| ------ | -------------- | ---------------------------------------- |
+| POST   | `/`            | Create/assign a cleanup task (team lead) |
+| GET    | `/`            | Get tasks (filtered by role)             |
+| PATCH  | `/:id/status`  | Update task status                       |
+| PATCH  | `/:id/cleanup` | Submit cleanup proof with image          |
 
 ### Admin (`/api/admin`)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/create-user` | Create team lead or worker |
-| DELETE | `/delete-user/:id` | Delete a user |
-| PATCH | `/reset-password/:id` | Reset user password |
-| GET | `/reports` | View all reports |
-| GET | `/tasks` | View all tasks |
+
+| Method | Endpoint              | Description                |
+| ------ | --------------------- | -------------------------- |
+| POST   | `/create-user`        | Create team lead or worker |
+| DELETE | `/delete-user/:id`    | Delete a user              |
+| PATCH  | `/reset-password/:id` | Reset user password        |
+| GET    | `/reports`            | View all reports           |
+| GET    | `/tasks`              | View all tasks             |
 
 ### Dashboard (`/api/dashboard`)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/admin` | Admin analytics (dump trends, cleanup stats) |
-| GET | `/team-lead` | Team lead stats (worker performance) |
-| GET | `/worker` | Worker stats (completion rate) |
-| GET | `/citizen` | Citizen stats (submission history) |
+
+| Method | Endpoint     | Description                                  |
+| ------ | ------------ | -------------------------------------------- |
+| GET    | `/admin`     | Admin analytics (dump trends, cleanup stats) |
+| GET    | `/team-lead` | Team lead stats (worker performance)         |
+| GET    | `/worker`    | Worker stats (completion rate)               |
+| GET    | `/citizen`   | Citizen stats (submission history)           |
 
 ### Upload (`/api/upload`)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/` | Upload image to Cloudinary |
+
+| Method | Endpoint | Description                |
+| ------ | -------- | -------------------------- |
+| POST   | `/`      | Upload image to Cloudinary |
+
+### AI Microservice (`http://localhost:8000`)
+
+| Method | Endpoint                | Description                           |
+| ------ | ----------------------- | ------------------------------------- |
+| POST   | `/api/validate/dump`    | Validate a garbage dump image by URL  |
+| POST   | `/api/validate/cleanup` | Validate a cleanup proof image by URL |
+| GET    | `/health`               | Health check                          |
 
 ---
 
 ## 🤖 AI Features
 
-- **Dump Validation:** When a citizen submits a report image, Gemini AI analyzes it to verify if it's an actual garbage dump (returns `isValid`, `reasoning`, `confidence`).
-- **Cleanup Verification:** When a worker submits a cleanup proof image, Gemini AI checks if the area looks clean (returns `isClean`, `reasoning`, `confidence`).
+AI validation is handled by a dedicated Python microservice (`garbage_image_tester`) running alongside the Node backend.
+
+- **Dump Validation:** When a citizen submits a report image, the Node backend calls the Python service which uses Gemini AI to verify if it's a real outdoor garbage dump. Returns `isValid`, `reasoning`, `confidence`.
+- **Cleanup Verification:** When a worker submits a cleanup proof image, the Python service checks if the area looks clean. Returns `isClean`, `reasoning`, `confidence`.
+- **Confidence-based routing:** High confidence (≥0.75) → auto-accept, medium (0.50–0.75) → pending review, low (<0.50) → reject.
 
 ---
 
 ## ⚙️ Setup & Installation
 
 ### Prerequisites
+
 - Node.js (v18+)
+- Python 3.8+
 - MongoDB Atlas account
 - Cloudinary account
 - Google AI API key
 
-### Steps
+### 1. Clone the repository
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Adityaaa13/GreenLoop.git
-   cd GreenLoop
-   ```
+```bash
+git clone https://github.com/Adityaaa13/GreenLoop.git
+cd GreenLoop
+```
 
-2. **Install backend dependencies**
-   ```bash
-   cd backend
-   npm install
-   ```
+### 2. Set up the Node.js backend
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   ```
-   Fill in your actual values in the `.env` file:
-   ```
-   PORT=5000
-   MONGO_URI=your_mongodb_connection_string
-   JWT_SECRET=your_random_secret_key
-   CLOUDINARY_CLOUD_NAME=your_cloud_name
-   CLOUDINARY_API_KEY=your_api_key
-   CLOUDINARY_API_SECRET=your_api_secret
-   GOOGLE_API_KEY=your_google_ai_key
-   ```
+```bash
+cd backend
+npm install
+cp .env.example .env
+```
 
-4. **Seed the admin user**
-   ```bash
-   node seed-admin.js
-   ```
+Fill in `backend/.env`:
 
-5. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-   Server will run on `http://localhost:5000`
+```
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_random_secret_key
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+PYTHON_AI_SERVICE_URL=http://localhost:8000
+```
+
+### 3. Set up the Python AI microservice
+
+```bash
+cd backend/services/garbage_image_tester
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+Fill in `garbage_image_tester/.env`:
+
+```
+GOOGLE_API_KEY=your_google_ai_key
+DATABASE_URL=sqlite:///./garbage_validation.db
+BLOB_STORAGE_PATH=./storage/blobs
+```
+
+### 4. Seed the admin user
+
+```bash
+cd backend
+node seed-admin.js
+```
+
+### 5. Run all services
+
+**Terminal 1 — Python AI microservice:**
+
+```bash
+cd backend/services/garbage_image_tester
+python main.py
+# runs on http://localhost:8000
+```
+
+**Terminal 2 — Node.js backend:**
+
+```bash
+cd backend
+npm run dev
+# runs on http://localhost:5000
+```
+
+**Terminal 3 — Frontend:**
+
+```bash
+cd frontend
+npm install
+npm run dev
+# runs on http://localhost:5173
+```
 
 ---
 
 ## 🔐 Default Admin Credentials
+
 - **Email:** admin@greenloop.com
-- **Password:** *(set in seed-admin.js)*
+- **Password:** _(set in seed-admin.js)_
 
 ---
 
