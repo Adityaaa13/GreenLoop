@@ -1,0 +1,22 @@
+# Web Framework
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.18
+
+# AI/ML Dependencies
+langchain==0.3.13
+langchain-google-genai==2.0.5
+google-generativeai==0.8.3
+
+# Image Processing
+Pillow==11.0.0
+
+# Environment Management
+python-dotenv==1.0.1
+
+# Database
+sqlalchemy==2.0.36
+
+# Testing
+pytest==8.3.4
+httpx==0.28.1
