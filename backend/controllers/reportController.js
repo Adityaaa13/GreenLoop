@@ -14,10 +14,10 @@ exports.createReport = async (req, res) => {
             return res.status(400).json({ message: "GPS coordinates (lat, lng) are required" });
         }
 
-        // 2. Cloudinary handles upload via Multer (in the router)
+        // 2. Cloudinary handles upload via Multer (in the router) // this is clud part 
         const imageUrl = req.file.path;
 
-        // 3. Run AI validation SYNCHRONOUSLY so the response includes the result
+        // 3. Run AI validation SYNCHRONOUSLY so the response includes the results
         console.log(`[Report] Starting AI validation for image: ${imageUrl}`);
         let aiResult;
         try {
