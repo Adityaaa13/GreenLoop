@@ -107,7 +107,7 @@ exports.getAdminDashboard = async (req, res) => {
     }
 };
 
-// GET /api/dashboard/team-lead
+// GET /api/dashboard/team-lead/ team-lead's dashboard
 exports.getTeamLeadDashboard = async (req, res) => {
     try {
         const teamLeadId = req.user.id;
