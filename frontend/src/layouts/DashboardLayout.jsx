@@ -12,9 +12,17 @@ const DashboardLayout = () => {
     const getNavItems = () => {
         if (!user) return [];
         switch (user.role) {
-            case "admin": return [{ label: "Admin Dashboard", path: "/admin", icon: "⚙️" }];
+            case "admin": return [
+                { label: "Overview", path: "/admin", icon: "⚙️" },
+                { label: "User Management", path: "/admin/users", icon: "👥" },
+                { label: "Team Performance", path: "/admin/teams", icon: "📊" },
+                { label: "System Reports", path: "/admin/reports", icon: "🗂️" }
+            ];
             case "worker": return [{ label: "Worker Tasks", path: "/worker", icon: "🔧" }];
-            case "team_lead": return [{ label: "Team Management", path: "/team-lead", icon: "👥" }];
+            case "team_lead": return [
+                { label: "Team Dashboard", path: "/team-lead", icon: "📈" },
+                { label: "Assign Work", path: "/team-lead/assign", icon: "📋" }
+            ];
             case "citizen": return [
                 { label: "Dashboard Hub", path: "/citizen", icon: "🏠" },
                 { label: "Submit New Report", path: "/citizen/submit", icon: "📷" },
@@ -61,6 +69,24 @@ const DashboardLayout = () => {
                     </button>
                 </div>
 
+                {/* User Profile Card (Top of sidebar) */}
+                {user && (
+                    <div className="p-4 shrink-0 border-b border-white/10 bg-black/10">
+                        <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-300 flex items-center justify-center text-teal-900 font-bold text-lg shadow-inner">
+                                {user.name?.charAt(0).toUpperCase() || "U"}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-white truncate">{user.name}</p>
+                                <p className="text-xs font-medium text-emerald-300/80 truncate capitalize flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    {user.role}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Nav links */}
                 <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
                     {currentNavItems.map((item, index) => {
@@ -85,24 +111,6 @@ const DashboardLayout = () => {
                         );
                     })}
                 </nav>
-
-                {/* User Profile Card (Bottom of sidebar) */}
-                {user && (
-                    <div className="p-4 shrink-0 border-t border-white/10 bg-black/10">
-                        <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-300 flex items-center justify-center text-teal-900 font-bold text-lg shadow-inner">
-                                {user.name?.charAt(0).toUpperCase() || "U"}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-white truncate">{user.name}</p>
-                                <p className="text-xs font-medium text-emerald-300/80 truncate capitalize flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                    {user.role}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </aside>
 
             {/* ── Main content area ── */}

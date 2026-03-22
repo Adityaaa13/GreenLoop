@@ -88,8 +88,17 @@ exports.deleteUser = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        // Rather than hard-delete, which corrupts historical tasks/reports, soft delete / disable is preferred.
-        // However, user specifically asked for "delete user". Let's hard-delete since they wrote "DELETE".
+        // Feature 4: Orphaned Worker Protection
+        if (user.role === "team_lead") {
+            const assignedWorkersCount = await User.countDocuments({ teamLeadId: id });
+            if (assignedWorkersCount > 0) {
+                return res.status(400).json({ 
+                    message: `Cannot delete Team Lead. They currently have ${assignedWorkersCount} assigned worker(s). Please edit those workers to assign them a new Team Lead before deleting.`
+                });
+            }
+        }
+
+        // Hard-delete
         await User.findByIdAndDelete(id);
 
         res.status(200).json({ message: "User hard-deleted successfully" });
@@ -123,6 +132,57 @@ exports.resetPassword = async (req, res) => {
         res.status(200).json({ message: "Password reset successfully" });
     } catch (error) {
         console.error("Reset Password Error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// GET /api/admin/users
+// Admin gets all workers and team leads
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find({ role: { $ne: "admin" } })
+            .select("-password")
+            .populate("teamLeadId", "name email");
+            
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("Get All Users Error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// PUT /api/admin/edit-user/:id
+// Admin edits user details
+exports.editUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, role, teamLeadId } = req.body;
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (email && email !== user.email) {
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+                return res.status(400).json({ message: "Email already exists" });
+            }
+            user.email = email;
+        }
+
+        if (name) user.name = name;
+        if (role) user.role = role;
+        if (teamLeadId !== undefined) user.teamLeadId = teamLeadId;
+
+        await user.save();
+
+        res.status(200).json({
+            message: "User updated successfully",
+            user: { id: user._id, name: user.name, email: user.email, role: user.role }
+        });
+    } catch (error) {
+        console.error("Edit User Error:", error);
         res.status(500).json({ message: error.message });
     }
 };

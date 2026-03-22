@@ -42,6 +42,53 @@ exports.getAdminDashboard = async (req, res) => {
             { $sort: { _id: 1 } }
         ]);
 
+        // 5. Live Activity Feed (top 10 latest events)
+        const recentReports = await Report.find().populate("citizenId", "name").sort({ createdAt: -1 }).limit(10).lean();
+        const recentTasks = await Task.find().populate("workerId", "name").populate("teamLeadId", "name").sort({ updatedAt: -1 }).limit(10).lean();
+
+        let activityFeed = [];
+        
+        recentReports.forEach(r => {
+            activityFeed.push({
+                _id: r._id,
+                type: 'report_created',
+                user: r.citizenId?.name || "A citizen",
+                action: "submitted a new dump report",
+                timestamp: r.createdAt
+            });
+        });
+
+        recentTasks.forEach(t => {
+            if (t.status === 'completed') {
+                activityFeed.push({
+                    _id: t._id + '_completed',
+                    type: 'task_completed',
+                    user: t.workerId?.name || "A worker",
+                    action: "completed a cleanup task",
+                    timestamp: t.updatedAt
+                });
+            } else if (t.status === 'assigned') {
+                activityFeed.push({
+                    _id: t._id + '_assigned',
+                    type: 'task_assigned',
+                    user: t.teamLeadId?.name || "A team lead",
+                    action: `assigned a task to ${t.workerId?.name || "a worker"}`,
+                    timestamp: t.createdAt
+                });
+            }
+        });
+
+        // Sort unified array descending and take top 10
+        activityFeed.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        activityFeed = activityFeed.slice(0, 10);
+
+        // 6. Overdue Tasks (Assigned but not completed after 48 hours)
+        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+        const overdueActionItems = await Task.find({
+            status: "assigned",
+            createdAt: { $lt: fortyEightHoursAgo }
+        }).populate("workerId", "name email").populate("teamLeadId", "name email").populate("reportId", "imageUrl gps").sort({ createdAt: 1 }).lean();
+
         res.status(200).json({
             totalDumps,
             verifiedDumps,
@@ -50,7 +97,9 @@ exports.getAdminDashboard = async (req, res) => {
             reworkTasks,
             dumpStatusBreakdown,
             monthlyDumpTrend,
-            monthlyCleanupTrend
+            monthlyCleanupTrend,
+            activityFeed,
+            overdueActionItems
         });
     } catch (error) {
         console.error("Admin Dashboard Error:", error);
@@ -69,46 +118,71 @@ exports.getTeamLeadDashboard = async (req, res) => {
         const reworkTasks = await Task.countDocuments({ teamLeadId, status: "rework_required" });
 
         // Worker Performance Aggregation
-        const workerPerformance = await Task.aggregate([
+        // Worker Performance Aggregation (including idle workers)
+        const teamWorkers = await User.find({ role: "worker", teamLeadId }).select("name email").lean();
+        
+        const workerStats = await Task.aggregate([
             { $match: { teamLeadId: new mongoose.Types.ObjectId(teamLeadId) } },
             {
                 $group: {
                     _id: "$workerId",
                     totalAssigned: { $sum: 1 },
+                    active: { $sum: { $cond: [{ $eq: ["$status", "assigned"] }, 1, 0] } },
                     completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } },
                     rework: { $sum: { $cond: [{ $eq: ["$status", "rework_required"] }, 1, 0] } }
                 }
-            },
-            // Lookup user details to get worker name
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "workerInfo"
-                }
-            },
-            { $unwind: "$workerInfo" },
-            {
-                $project: {
-                    _id: 1,
-                    workerName: "$workerInfo.name",
-                    totalAssigned: 1,
-                    completed: 1,
-                    rework: 1
-                }
-            },
-            { $sort: { completed: -1 } }
+            }
         ]);
+
+        const workerPerformance = teamWorkers.map(w => {
+            const stats = workerStats.find(s => s._id && s._id.toString() === w._id.toString()) || {
+                totalAssigned: 0, active: 0, completed: 0, rework: 0
+            };
+            return {
+                _id: { _id: w._id, name: w.name, email: w.email },
+                totalAssigned: stats.totalAssigned,
+                active: stats.active,
+                completed: stats.completed,
+                rework: stats.rework
+            };
+        });
+
+        // Sort by active tasks first so they see who is currently working
+        workerPerformance.sort((a, b) => b.active - a.active);
+
+        // Fetch the last 20 tasks for the live task tracker
+        const recentTasks = await Task.find({ teamLeadId })
+            .populate("workerId", "name email")
+            .populate("reportId", "imageUrl gps aiConfidence status")
+            .sort({ updatedAt: -1 })
+            .limit(20)
+            .lean();
 
         res.status(200).json({
             assignedTasks,
             completedTasks,
             reworkTasks,
-            workerPerformance
+            workerPerformance,
+            recentTasks
         });
     } catch (error) {
         console.error("Team Lead Dashboard Error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// GET /api/dashboard/team-lead/workers
+exports.getTeamWorkers = async (req, res) => {
+    try {
+        const teamLeadId = req.user.id;
+        // Fetch only workers strictly assigned to this Team Lead
+        const workers = await User.find({ role: "worker", teamLeadId })
+            .select("name email _id")
+            .lean();
+            
+        res.status(200).json(workers);
+    } catch (error) {
+        console.error("Team Lead Workers Error:", error);
         res.status(500).json({ message: error.message });
     }
 };

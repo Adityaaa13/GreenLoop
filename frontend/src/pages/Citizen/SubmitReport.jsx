@@ -180,7 +180,7 @@ const SubmitReport = () => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 flex flex-col h-[500px] lg:h-auto">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                            <span className="text-emerald-500">📍</span> Live Location Tracking
+                            <span className="text-emerald-600">📍</span> Live Location Tracking
                         </h2>
                         {locationError ? (
                             <span className="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full flex items-center gap-1">

@@ -41,7 +41,7 @@ const reportSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["pending_validation", "verified_dump", "rejected"],
+            enum: ["pending_validation", "verified_dump", "rejected", "cleanup_assigned", "cleaned"],
             default: "pending_validation",
         }
     },

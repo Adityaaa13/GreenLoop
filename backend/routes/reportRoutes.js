@@ -23,12 +23,11 @@ router.get(
     getMyReports
 );
 
-// 3. Admin monitors reports
-// Only admin role allowed
+// 3. Admin & Team Lead can view reports
 router.get(
     "/",
     auth,
-    authorizeRoles("admin"),
+    authorizeRoles("admin", "team_lead"),
     getAllReports
 );
 

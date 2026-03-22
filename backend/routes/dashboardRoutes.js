@@ -21,6 +21,13 @@ router.get(
     dashboardController.getTeamLeadDashboard
 );
 
+// GET /api/dashboard/team-lead/workers
+router.get(
+    "/team-lead/workers",
+    authorizeRoles("team_lead"),
+    dashboardController.getTeamWorkers
+);
+
 // GET /api/dashboard/worker
 router.get(
     "/worker",

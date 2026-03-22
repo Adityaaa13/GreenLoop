@@ -13,7 +13,10 @@ import HelpGuides from "./pages/Citizen/HelpGuides";
 import TeamLeadDashboard from "./pages/TeamLead/TeamLeadDashboard";
 import WorkerDashboard from "./pages/Worker/WorkerDashboard";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-
+import AdminUsers from "./pages/Admin/AdminUsers";
+import AdminTeams from "./pages/Admin/AdminTeams";
+import AdminReports from "./pages/Admin/AdminReports";
+import TaskAssignment from "./pages/TeamLead/TaskAssignment";
 function App() {
   return (
     <AuthProvider>
@@ -74,6 +77,14 @@ function App() {
               }
             />
             <Route
+              path="/team-lead/assign"
+              element={
+                <ProtectedRoute allowedRoles={["team_lead"]}>
+                  <TaskAssignment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/worker"
               element={
                 <ProtectedRoute allowedRoles={["worker"]}>
@@ -86,6 +97,30 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminUsers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/teams"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminTeams />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminReports />
                 </ProtectedRoute>
               }
             />

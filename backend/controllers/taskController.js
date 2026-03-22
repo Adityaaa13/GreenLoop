@@ -38,6 +38,10 @@ exports.assignTask = async (req, res) => {
             status: "assigned"
         });
 
+        // 4. Update the report status so it can't be assigned again
+        report.status = "cleanup_assigned";
+        await report.save();
+
         res.status(201).json({
             message: "Task assigned successfully",
             task
@@ -135,6 +139,13 @@ exports.uploadCleanup = async (req, res) => {
         // 5. If valid -> completed, else -> rework_required
         task.status = aiResult.isClean ? "completed" : "rework_required";
         await task.save();
+
+        // 6. Update the Report status to reflect the cleanup outcome
+        const report = task.reportId;
+        if (aiResult.isClean) {
+            report.status = "cleaned";
+            await report.save();
+        }
 
         res.status(200).json({
             message: aiResult.isClean ? "Cleanup validated and completed!" : "Cleanup rejected. Rework required.",
