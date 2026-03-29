@@ -193,6 +193,7 @@ exports.getWorkerDashboard = async (req, res) => {
         const workerId = req.user.id;
 
         const totalAssigned = await Task.countDocuments({ workerId });
+        const active = await Task.countDocuments({ workerId, status: { $in: ["assigned", "in_progress"] } });
         const completed = await Task.countDocuments({ workerId, status: "completed" });
         const rework = await Task.countDocuments({ workerId, status: "rework_required" });
 
@@ -204,6 +205,7 @@ exports.getWorkerDashboard = async (req, res) => {
 
         res.status(200).json({
             totalAssigned,
+            active,
             completed,
             rework,
             completionRate

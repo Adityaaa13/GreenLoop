@@ -125,7 +125,17 @@ exports.uploadCleanup = async (req, res) => {
         }
 
         // 3. Call AI Validation if GPS passes
-        const aiResult = await validateCleanupImage(cleanupImageUrl);
+        let aiResult;
+        try {
+            aiResult = await validateCleanupImage(cleanupImageUrl);
+        } catch (aiError) {
+            console.error("[Cleanup] AI validation threw:", aiError);
+            aiResult = {
+                isClean: false,
+                reasoning: `AI Service Error: Could not determine cleanliness. Please try uploading again or contact Team Lead. (${aiError.message})`,
+                confidence: 0
+            };
+        }
 
         // 4. Save results and update status
         task.cleanupImage = cleanupImageUrl;
@@ -171,6 +181,22 @@ exports.getAllTasks = async (req, res) => {
         res.status(200).json({ tasks });
     } catch (error) {
         console.error("Fetch Tasks Error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// GET /api/tasks/my
+// Worker fetches their own tasks
+exports.getMyTasks = async (req, res) => {
+    try {
+        const tasks = await Task.find({ workerId: req.user.id })
+            .populate("reportId", "imageUrl gps description status aiValidation")
+            .populate("teamLeadId", "name email")
+            .sort({ updatedAt: -1 });
+
+        res.status(200).json({ tasks });
+    } catch (error) {
+        console.error("Fetch My Tasks Error:", error);
         res.status(500).json({ message: error.message });
     }
 };
