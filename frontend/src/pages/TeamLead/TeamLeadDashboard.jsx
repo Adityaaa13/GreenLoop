@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
     ClipboardList, CheckSquare, AlertTriangle, Users, ArrowRight, 
-    TrendingUp, Eye, RefreshCw, ChevronDown, ChevronUp, MapPin, Image
+    TrendingUp, Eye, RefreshCw, ChevronDown, ChevronUp, MapPin, Image, Search
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format, formatDistanceToNow } from "date-fns";
@@ -38,8 +38,14 @@ const TaskCard = ({ task }) => {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                        <p className="text-sm font-bold text-gray-800">Zone #{task._id.slice(-6).toUpperCase()}</p>
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.color}`}>
+                        <p className="text-sm font-bold text-gray-800 truncate">
+                            {task.reportId?.description
+                                ? task.reportId.description.length > 40
+                                    ? task.reportId.description.slice(0, 40) + "…"
+                                    : task.reportId.description
+                                : `Cleanup for Report #${(task.reportId?._id || task._id).slice(-5).toUpperCase()}`}
+                        </p>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${cfg.color}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}></span>
                             {cfg.label}
                         </span>
@@ -48,6 +54,8 @@ const TaskCard = ({ task }) => {
                         <span className="font-semibold text-gray-600">{task.workerId?.name || "Unassigned"}</span>
                         {" · "}
                         {formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}
+                        {" · "}
+                        <span className="font-mono font-bold tracking-wider opacity-60">Report #{(task.reportId?._id || task._id).slice(-5).toUpperCase()}</span>
                     </p>
                 </div>
 
@@ -88,7 +96,9 @@ const TaskCard = ({ task }) => {
                     {task.cleanupImage && (
                         <div>
                             <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-1">Worker's Cleanup Photo</p>
-                            <img src={task.cleanupImage} alt="Cleanup" className="w-full max-h-40 object-cover rounded-lg border border-gray-200" />
+                            <a href={task.cleanupImage} target="_blank" rel="noopener noreferrer">
+                                <img src={task.cleanupImage} alt="Cleanup" className="w-full rounded-lg border border-gray-200 hover:opacity-90 transition-opacity cursor-pointer" />
+                            </a>
                         </div>
                     )}
 
@@ -139,6 +149,7 @@ const TeamLeadDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState("all");
+    const [searchQuery, setSearchQuery] = useState("");
 
     const fetchData = async () => {
         try {
@@ -178,14 +189,19 @@ const TeamLeadDashboard = () => {
     const totalTasks = assignedTasks + completedTasks + reworkTasks;
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-    const filteredTasks = activeTab === "all"
-        ? recentTasks
-        : recentTasks.filter(t => t.status === activeTab);
+    const filteredTasks = recentTasks.filter(t => {
+        const matchesTab = activeTab === "all" ? t.status !== "completed" : t.status === activeTab;
+        const searchLower = searchQuery.toLowerCase();
+        const matchesSearch = !searchQuery || 
+            t._id.toLowerCase().includes(searchLower) ||
+            t.reportId?.description?.toLowerCase().includes(searchLower) ||
+            t.workerId?.name?.toLowerCase().includes(searchLower);
+        return matchesTab && matchesSearch;
+    });
 
     const tabCounts = {
-        all: recentTasks.length,
+        all: recentTasks.filter(t => t.status !== "completed").length,
         assigned: recentTasks.filter(t => t.status === "assigned").length,
-        completed: recentTasks.filter(t => t.status === "completed").length,
         rework_required: recentTasks.filter(t => t.status === "rework_required").length,
     };
 
@@ -245,41 +261,57 @@ const TeamLeadDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* Left: Task Tracker */}
-                <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-                    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-                        <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                            <Eye size={18} className="text-gray-500"/> Live Task Tracker
-                        </h2>
-                    </div>
+                <div className="lg:col-span-2 space-y-6">
+                    {/* Active Tasks */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+                        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                <Eye size={18} className="text-gray-500"/> Active Tasks
+                            </h2>
+                            <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{tabCounts.all} tasks</span>
+                        </div>
 
-                    {/* Filter Tabs */}
-                    <div className="px-6 pt-4 flex gap-2 flex-wrap">
-                        {Object.entries({ all: "All", assigned: "Active", completed: "Done", rework_required: "Rework" }).map(([key, label]) => (
-                            <button
-                                key={key}
-                                onClick={() => setActiveTab(key)}
-                                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                                    activeTab === key
-                                        ? "bg-gray-800 text-white border-gray-800"
-                                        : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
-                                }`}
-                            >
-                                {label} ({tabCounts[key]})
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Scrollable Task List */}
-                    <div className="p-4 space-y-2 flex-1 max-h-[550px] overflow-y-auto">
-                        {filteredTasks.length > 0 ? filteredTasks.map(task => (
-                            <TaskCard key={task._id} task={task} />
-                        )) : (
-                            <div className="text-center py-16 text-gray-400">
-                                <ClipboardList size={40} className="mx-auto mb-3 opacity-40" />
-                                <p className="font-semibold">No tasks match this filter.</p>
-                                <p className="text-xs mt-1">Try selecting a different tab above.</p>
+                        {/* Filters & Search */}
+                        <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white">
+                            <div className="flex gap-2 flex-wrap">
+                                {Object.entries({ all: "All Active", assigned: "Waiting", rework_required: "Rework" }).map(([key, label]) => (
+                                    <button
+                                        key={key}
+                                        onClick={() => setActiveTab(key)}
+                                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                                            activeTab === key
+                                                ? "bg-gray-800 text-white border-gray-800 shadow-sm"
+                                                : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                                        }`}
+                                    >
+                                        {label} ({tabCounts[key]})
+                                    </button>
+                                ))}
                             </div>
-                        )}
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="Search tasks or workers..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pl-9 pr-4 py-2 w-full sm:w-64 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none bg-gray-50/50"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Scrollable Task List */}
+                        <div className="p-4 space-y-2 flex-1 max-h-[550px] overflow-y-auto">
+                            {filteredTasks.length > 0 ? filteredTasks.map(task => (
+                                <TaskCard key={task._id} task={task} />
+                            )) : (
+                                <div className="text-center py-16 text-gray-400">
+                                    <ClipboardList size={40} className="mx-auto mb-3 opacity-40" />
+                                    <p className="font-semibold">No active tasks right now.</p>
+                                    <p className="text-xs mt-1">All caught up! 🎉</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 

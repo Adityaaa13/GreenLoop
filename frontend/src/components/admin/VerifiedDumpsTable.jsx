@@ -30,6 +30,7 @@ const VerifiedDumpsTable = ({ reports }) => {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report ID</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Citizen</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
@@ -41,6 +42,9 @@ const VerifiedDumpsTable = ({ reports }) => {
                         {genuineReports.length > 0 ? (
                             genuineReports.map((report) => (
                                 <tr key={report._id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold font-mono text-emerald-600">
+                                        #{report._id.slice(-5).toUpperCase()}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {format(new Date(report.createdAt), "MMM d, yyyy HH:mm")}
                                     </td>
