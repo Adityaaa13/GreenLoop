@@ -12,6 +12,8 @@ import CommunityStats from "./pages/Citizen/CommunityStats";
 import HelpGuides from "./pages/Citizen/HelpGuides";
 import TeamLeadDashboard from "./pages/TeamLead/TeamLeadDashboard";
 import WorkerDashboard from "./pages/Worker/WorkerDashboard";
+import WorkerPreviousTasks from "./pages/Worker/PreviousTasks";
+import TeamLeadPreviousTasks from "./pages/TeamLead/PreviousTasks";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import AdminUsers from "./pages/Admin/AdminUsers";
 import AdminTeams from "./pages/Admin/AdminTeams";
@@ -85,10 +87,26 @@ function App() {
               }
             />
             <Route
+              path="/team-lead/history"
+              element={
+                <ProtectedRoute allowedRoles={["team_lead"]}>
+                  <TeamLeadPreviousTasks />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/worker"
               element={
                 <ProtectedRoute allowedRoles={["worker"]}>
                   <WorkerDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/worker/history"
+              element={
+                <ProtectedRoute allowedRoles={["worker"]}>
+                  <WorkerPreviousTasks />
                 </ProtectedRoute>
               }
             />

@@ -23,6 +23,15 @@ router.post(
     require("../controllers/taskController").uploadCleanup
 );
 
+// GET /api/tasks/my
+// Worker fetches their own tasks
+router.get(
+    "/my",
+    auth,
+    authorizeRoles("worker"),
+    require("../controllers/taskController").getMyTasks
+);
+
 // GET /api/tasks
 // Fetch all tasks for Admin monitoring
 router.get(

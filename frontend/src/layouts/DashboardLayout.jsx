@@ -18,10 +18,14 @@ const DashboardLayout = () => {
                 { label: "Team Performance", path: "/admin/teams", icon: "📊" },
                 { label: "System Reports", path: "/admin/reports", icon: "🗂️" }
             ];
-            case "worker": return [{ label: "Worker Tasks", path: "/worker", icon: "🔧" }];
+            case "worker": return [
+                { label: "Worker Tasks", path: "/worker", icon: "🔧" },
+                { label: "Previous Tasks", path: "/worker/history", icon: "✅" }
+            ];
             case "team_lead": return [
                 { label: "Team Dashboard", path: "/team-lead", icon: "📈" },
-                { label: "Assign Work", path: "/team-lead/assign", icon: "📋" }
+                { label: "Assign Work", path: "/team-lead/assign", icon: "📋" },
+                { label: "Previous Tasks", path: "/team-lead/history", icon: "✅" }
             ];
             case "citizen": return [
                 { label: "Dashboard Hub", path: "/citizen", icon: "🏠" },
