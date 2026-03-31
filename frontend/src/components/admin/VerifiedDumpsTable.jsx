@@ -15,10 +15,8 @@ const VerifiedDumpsTable = ({ reports }) => {
         return `px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statuses[status] || defaultClass}`;
     };
 
-    // Filter to only show genuine, verified reports to the Admin
-    const genuineReports = reports?.filter(r => 
-        ["verified_dump", "cleanup_assigned", "cleaned"].includes(r.status)
-    ) || [];
+    // Expose all reports, removing previous verified filter, falling back to empty array
+    const allReports = reports || [];
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8 overflow-hidden">
@@ -39,8 +37,8 @@ const VerifiedDumpsTable = ({ reports }) => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {genuineReports.length > 0 ? (
-                            genuineReports.map((report) => (
+                        {allReports.length > 0 ? (
+                            allReports.map((report) => (
                                 <tr key={report._id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold font-mono text-emerald-600">
                                         #{report._id.slice(-5).toUpperCase()}
