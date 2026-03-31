@@ -26,7 +26,7 @@ const SummaryCards = ({ data }) => {
     if (!data) return null;
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
             <SummaryCard
                 title="Total Reports"
                 value={data.totalDumps || 0}
@@ -40,6 +40,13 @@ const SummaryCards = ({ data }) => {
                 icon={CheckCircle}
                 colorClass="bg-green-100 text-green-600"
                 linkTo="/admin/reports?filter=verified_dump"
+            />
+            <SummaryCard
+                title="Cleanup Assigned"
+                value={data.cleanupAssigned || 0}
+                icon={ClipboardList}
+                colorClass="bg-purple-100 text-purple-600"
+                linkTo="/admin/reports?filter=cleanup_assigned"
             />
             <SummaryCard
                 title="Completed Tasks"

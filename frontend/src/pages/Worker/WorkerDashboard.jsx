@@ -219,7 +219,7 @@ const TaskCard = ({ task, onTaskUpdate }) => {
                     <p className="text-xs text-gray-500">
                         <span className="font-semibold text-gray-600">Assigned by {task.teamLeadId?.name || "Team Lead"}</span>
                         {" · "}
-                        {formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}
                         {" · "}
                         <span className="font-mono font-bold tracking-wider opacity-60">Report #{(task.reportId?._id || task._id).slice(-5).toUpperCase()}</span>
                     </p>
@@ -237,11 +237,11 @@ const TaskCard = ({ task, onTaskUpdate }) => {
                     {/* Detail Grid */}
                     <div className="grid grid-cols-2 gap-3 text-xs pt-3">
                         <div>
-                            <p className="text-gray-400 font-medium uppercase tracking-wider mb-0.5">Assigned On</p>
+                            <p className="text-gray-400 font-medium uppercase tracking-wider mb-0.5">First Opened</p>
                             <p className="text-gray-700 font-semibold">{format(new Date(task.createdAt), "dd MMM yyyy, h:mm a")}</p>
                         </div>
                         <div>
-                            <p className="text-gray-400 font-medium uppercase tracking-wider mb-0.5">Last Updated</p>
+                            <p className="text-gray-400 font-medium uppercase tracking-wider mb-0.5">Last Assigned / Updated</p>
                             <p className="text-gray-700 font-semibold">{format(new Date(task.updatedAt), "dd MMM yyyy, h:mm a")}</p>
                         </div>
                     </div>

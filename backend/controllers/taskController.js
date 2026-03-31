@@ -200,3 +200,52 @@ exports.getMyTasks = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// PUT /api/tasks/reassign/:id
+// Only team_lead can reassign
+exports.reassignTask = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { newWorkerId } = req.body;
+
+        if (!newWorkerId) {
+            return res.status(400).json({ message: "newWorkerId is required" });
+        }
+
+        const task = await Task.findById(id);
+        if (!task) {
+            return res.status(404).json({ message: "Task not found" });
+        }
+
+        // Only allow reassigning if the current user is the team lead who manages it
+        if (task.teamLeadId.toString() !== req.user.id.toString()) {
+            return res.status(403).json({ message: "Unauthorized: You can only reassign your own tasks" });
+        }
+
+        // Validate the new worker
+        const worker = await User.findById(newWorkerId);
+        if (!worker || worker.role !== "worker") {
+            return res.status(400).json({ message: "Valid worker ID is required" });
+        }
+
+        // Reassign and reset the task
+        task.workerId = worker._id;
+        task.status = "assigned";
+        task.createdAt = new Date(); // Reset the assignment date for the new worker
+        
+        task.cleanupImage = undefined;
+        task.cleanupGps = undefined;
+        task.aiValidation = undefined;
+
+        await task.save();
+
+        res.status(200).json({
+            message: "Task reassigned successfully",
+            task
+        });
+
+    } catch (error) {
+        console.error("Reassign Task Error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};

@@ -1,15 +1,27 @@
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
-const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6'];
+const STATUS_COLORS = {
+    "pending_validation": "#F59E0B",  // amber/yellow
+    "verified_dump": "#3B82F6",       // blue
+    "rejected": "#EF4444",            // red
+    "cleanup_assigned": "#8B5CF6",    // purple
+    "cleaned": "#10B981"              // green
+};
+
+const DEFAULT_COLOR = "#9CA3AF";      // gray
 
 const AdminCharts = ({ monthlyDumpTrend, dumpStatusBreakdown }) => {
     
-    // Format pie chart data
-    const pieData = dumpStatusBreakdown?.map(item => ({
-        name: item._id.replace("_", " ").toUpperCase(),
-        value: item.count
-    })) || [];
+    // Format pie chart data (ensuring all statuses show up in the legend even if count is 0)
+    const pieData = Object.keys(STATUS_COLORS).map(status => {
+        const found = dumpStatusBreakdown?.find(item => item._id === status);
+        return {
+            name: status.replace("_", " ").toUpperCase(),
+            value: found ? found.count : 0,
+            color: STATUS_COLORS[status]
+        };
+    });
 
     // Format bar chart data
     const barData = monthlyDumpTrend || [];
@@ -33,7 +45,7 @@ const AdminCharts = ({ monthlyDumpTrend, dumpStatusBreakdown }) => {
                                     dataKey="value"
                                 >
                                     {pieData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
                                     ))}
                                 </Pie>
                                 <RechartsTooltip />

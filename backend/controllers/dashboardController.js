@@ -13,6 +13,7 @@ exports.getAdminDashboard = async (req, res) => {
 
         const completedCleanups = await Task.countDocuments({ status: "completed" });
         const reworkTasks = await Task.countDocuments({ status: "rework_required" });
+        const cleanupAssigned = await Report.countDocuments({ status: "cleanup_assigned" });
 
         // 2. Dump Status Breakdown (for pie chart)
         const dumpStatusBreakdown = await Report.aggregate([
@@ -93,6 +94,7 @@ exports.getAdminDashboard = async (req, res) => {
             totalDumps,
             verifiedDumps,
             rejectedDumps,
+            cleanupAssigned,
             completedCleanups,
             reworkTasks,
             dumpStatusBreakdown,

@@ -41,4 +41,13 @@ router.get(
     require("../controllers/taskController").getAllTasks
 );
 
+// PUT /api/tasks/reassign/:id
+// Only 'team_lead' can reassign tasks
+router.put(
+    "/reassign/:id",
+    auth,
+    authorizeRoles("team_lead"),
+    require("../controllers/taskController").reassignTask
+);
+
 module.exports = router;

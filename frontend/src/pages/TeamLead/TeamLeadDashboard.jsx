@@ -15,8 +15,9 @@ const statusConfig = {
 };
 
 /* ───────────────────── Expandable Task Card ───────────────────── */
-const TaskCard = ({ task }) => {
+const TaskCard = ({ task, squad = [], onReassign }) => {
     const [expanded, setExpanded] = useState(false);
+    const [reassigningTo, setReassigningTo] = useState("");
     const cfg = statusConfig[task.status] || statusConfig.assigned;
 
     return (
@@ -70,10 +71,14 @@ const TaskCard = ({ task }) => {
                 <div className="px-4 pb-4 pt-0 space-y-3 border-t border-gray-100 bg-gray-50/50 rounded-b-xl">
                     <div className="grid grid-cols-2 gap-3 text-xs pt-3">
                         <div>
-                            <p className="text-gray-400 font-medium uppercase tracking-wider mb-0.5">Assigned</p>
+                            <p className="text-gray-400 font-medium uppercase tracking-wider mb-0.5">First Opened</p>
                             <p className="text-gray-700 font-semibold">{format(new Date(task.createdAt), "dd MMM yyyy, h:mm a")}</p>
                         </div>
                         <div>
+                            <p className="text-gray-400 font-medium uppercase tracking-wider mb-0.5">Last Assigned / Updated</p>
+                            <p className="text-gray-700 font-semibold">{format(new Date(task.updatedAt), "dd MMM yyyy, h:mm a")}</p>
+                        </div>
+                        <div className="col-span-2">
                             <p className="text-gray-400 font-medium uppercase tracking-wider mb-0.5">Worker Email</p>
                             <p className="text-gray-700 font-semibold">{task.workerId?.email || "N/A"}</p>
                         </div>
@@ -110,6 +115,39 @@ const TaskCard = ({ task }) => {
                             {task.cleanupGps?.lat && (
                                 <span className="ml-2">| Cleanup: {task.cleanupGps.lat?.toFixed(4)}, {task.cleanupGps.lng?.toFixed(4)}</span>
                             )}
+                        </div>
+                    )}
+
+                    {/* Reassign Worker (For Reworks) */}
+                    {task.status === "rework_required" && onReassign && squad.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Reassign Rework Task</p>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <select 
+                                    value={reassigningTo}
+                                    onChange={(e) => setReassigningTo(e.target.value)}
+                                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                >
+                                    <option value="" disabled>Select new worker</option>
+                                    {squad.map(w => (
+                                        <option key={w._id} value={w._id}>{w.name}</option>
+                                    ))}
+                                </select>
+                                <button
+                                    onClick={() => {
+                                        if (reassigningTo) {
+                                            if(window.confirm("Are you sure you want to reassign this task? The new worker will start from scratch.")) {
+                                                onReassign(task._id, reassigningTo);
+                                                setReassigningTo("");
+                                            }
+                                        }
+                                    }}
+                                    disabled={!reassigningTo}
+                                    className="bg-red-600 disabled:bg-red-300 hover:bg-red-700 text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors"
+                                >
+                                    Transfer
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -160,6 +198,15 @@ const TeamLeadDashboard = () => {
             setError("Unable to load dashboard data.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleReassign = async (taskId, newWorkerId) => {
+        try {
+            await api.put(`/tasks/reassign/${taskId}`, { newWorkerId });
+            fetchData();
+        } catch (err) {
+            alert(err.response?.data?.message || "Failed to reassign task");
         }
     };
 
@@ -303,7 +350,12 @@ const TeamLeadDashboard = () => {
                         {/* Scrollable Task List */}
                         <div className="p-4 space-y-2 flex-1 max-h-[550px] overflow-y-auto">
                             {filteredTasks.length > 0 ? filteredTasks.map(task => (
-                                <TaskCard key={task._id} task={task} />
+                                <TaskCard 
+                                    key={task._id} 
+                                    task={task} 
+                                    squad={workerPerformance.map(wp => wp._id).filter(Boolean)} 
+                                    onReassign={handleReassign} 
+                                />
                             )) : (
                                 <div className="text-center py-16 text-gray-400">
                                     <ClipboardList size={40} className="mx-auto mb-3 opacity-40" />

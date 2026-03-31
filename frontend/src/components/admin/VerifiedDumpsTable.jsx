@@ -29,10 +29,11 @@ const VerifiedDumpsTable = ({ reports }) => {
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reported On</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed On</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Citizen</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AI Confidence</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location & Details</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         </tr>
                     </thead>
@@ -46,6 +47,9 @@ const VerifiedDumpsTable = ({ reports }) => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {format(new Date(report.createdAt), "MMM d, yyyy HH:mm")}
                                     </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                                        {report.status === "cleaned" ? format(new Date(report.updatedAt), "MMM d, yyyy HH:mm") : <span className="text-gray-300">-</span>}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {report.citizenId?.name || "Unknown"}
                                     </td>
@@ -56,8 +60,20 @@ const VerifiedDumpsTable = ({ reports }) => {
                                             </a>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {report.aiConfidence ? (report.aiConfidence * 100).toFixed(0) + "%" : "N/A"}
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-gray-900 truncate max-w-[150px]">
+                                            {report.description || <span className="text-gray-400 italic">No description</span>}
+                                        </div>
+                                        {report.gps && (
+                                            <a 
+                                                href={`https://www.google.com/maps?q=${report.gps.lat},${report.gps.lng}`} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="text-xs text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1 mt-1 font-medium"
+                                            >
+                                                View on Maps
+                                            </a>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={getStatusBadge(report.status)}>
@@ -68,7 +84,7 @@ const VerifiedDumpsTable = ({ reports }) => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
+                                <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
                                     No reports found.
                                 </td>
                             </tr>
