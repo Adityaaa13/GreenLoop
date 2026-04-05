@@ -15,6 +15,17 @@ const VerifiedDumpsTable = ({ reports }) => {
         return `px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statuses[status] || defaultClass}`;
     };
 
+    const getTaskStatusBadge = (status) => {
+        const statuses = {
+            "assigned": "bg-blue-100 text-blue-700",
+            "in_progress": "bg-orange-100 text-orange-700",
+            "completed": "bg-green-100 text-green-700",
+            "rework_required": "bg-red-100 text-red-700",
+        };
+        const defaultClass = "bg-gray-100 text-gray-600";
+        return `px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${statuses[status] || defaultClass}`;
+    };
+
     // Expose all reports, removing previous verified filter, falling back to empty array
     const allReports = reports || [];
 
@@ -35,6 +46,9 @@ const VerifiedDumpsTable = ({ reports }) => {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location & Details</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team Lead</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Worker</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task Status</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -80,11 +94,24 @@ const VerifiedDumpsTable = ({ reports }) => {
                                             {report.status.replace("_", " ")}
                                         </span>
                                     </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        {report.task?.teamLead?.name || <span className="text-gray-300">—</span>}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        {report.task?.worker?.name || <span className="text-gray-300">—</span>}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {report.task ? (
+                                            <span className={getTaskStatusBadge(report.task.status)}>
+                                                {report.task.status.replace("_", " ")}
+                                            </span>
+                                        ) : <span className="text-gray-300 text-sm">—</span>}
+                                    </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                                <td colSpan="10" className="px-6 py-4 text-center text-sm text-gray-500">
                                     No reports found.
                                 </td>
                             </tr>

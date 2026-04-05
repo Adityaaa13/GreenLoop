@@ -59,12 +59,42 @@ exports.createReport = async (req, res) => {
     }
 };
 
+const Task = require("../models/Task");
+
 // GET /api/reports
-// Fetch all reports (for Admin monitoring)
+// Fetch all reports (for Admin monitoring) with task assignment info
 exports.getAllReports = async (req, res) => {
     try {
-        const reports = await Report.find().populate("citizenId", "name email").sort({ createdAt: -1 });
-        res.status(200).json({ reports });
+        const reports = await Report.find().populate("citizenId", "name email").sort({ createdAt: -1 }).lean();
+
+        // Fetch all tasks and index by reportId for fast lookup
+        const tasks = await Task.find()
+            .populate("workerId", "name email")
+            .populate("teamLeadId", "name email")
+            .lean();
+
+        const taskByReportId = {};
+        tasks.forEach(t => {
+            taskByReportId[t.reportId.toString()] = t;
+        });
+
+        // Attach task info to each report
+        const enrichedReports = reports.map(r => {
+            const task = taskByReportId[r._id.toString()];
+            return {
+                ...r,
+                task: task ? {
+                    _id: task._id,
+                    status: task.status,
+                    worker: task.workerId,
+                    teamLead: task.teamLeadId,
+                    createdAt: task.createdAt,
+                    updatedAt: task.updatedAt,
+                } : null
+            };
+        });
+
+        res.status(200).json({ reports: enrichedReports });
     } catch (error) {
         console.error("Fetch Reports Error:", error);
         res.status(500).json({ message: error.message });

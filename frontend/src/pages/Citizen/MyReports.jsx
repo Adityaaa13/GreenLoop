@@ -211,50 +211,71 @@ const MyReports = () => {
                 )}
             </div>
 
-            {/* ── Active Reports Table ── */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <span className="text-emerald-500">⚡</span> Active Reports
-                    </h2>
-                    <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{activeReports.length} pending</span>
-                </div>
-                <ReportsTable 
-                    reports={activeReports} 
-                    loading={loadingReports} 
-                    emptyMessage="You don't have any active reports right now. When you encounter an illegal dump, snap a photo to get it cleaned up."
-                    emptyCta={true}
-                    onSelectReport={setSelectedReport}
-                />
-            </div>
-
-            {/* ── Previous Reports Section ── */}
-            {(!loadingReports && previousReports.length > 0) && (
+            {/* When a filter is active, show a single unified list */}
+            {statusFilter ? (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <button
-                        onClick={() => setHistoryExpanded(!historyExpanded)}
-                        className="w-full px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between cursor-pointer transition-colors hover:bg-gray-100"
-                    >
+                    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                         <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                            <CheckSquare size={18} className="text-emerald-500"/> Previous Reports History
+                            <span className="text-emerald-500">📋</span> {STATUS_LABELS[statusFilter] || statusFilter} Reports
                         </h2>
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">{previousReports.length} completed</span>
-                            {historyExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                        <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{allFiltered.length} results</span>
+                    </div>
+                    <ReportsTable 
+                        reports={allFiltered} 
+                        loading={loadingReports} 
+                        emptyMessage={`No ${STATUS_LABELS[statusFilter]?.toLowerCase() || ""} reports found.`}
+                        emptyCta={false}
+                        onSelectReport={setSelectedReport}
+                    />
+                </div>
+            ) : (
+                <>
+                    {/* ── Active Reports Table ── */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                <span className="text-emerald-500">⚡</span> Active Reports
+                            </h2>
+                            <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{activeReports.length} pending</span>
                         </div>
-                    </button>
-                    {historyExpanded && (
-                        <div className="border-t border-gray-100">
-                            <ReportsTable 
-                                reports={previousReports} 
-                                loading={false} 
-                                emptyMessage="No completed history found."
-                                emptyCta={false}
-                                onSelectReport={setSelectedReport}
-                            />
+                        <ReportsTable 
+                            reports={activeReports} 
+                            loading={loadingReports} 
+                            emptyMessage="You don't have any active reports right now. When you encounter an illegal dump, snap a photo to get it cleaned up."
+                            emptyCta={true}
+                            onSelectReport={setSelectedReport}
+                        />
+                    </div>
+
+                    {/* ── Previous Reports Section ── */}
+                    {(!loadingReports && previousReports.length > 0) && (
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                            <button
+                                onClick={() => setHistoryExpanded(!historyExpanded)}
+                                className="w-full px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between cursor-pointer transition-colors hover:bg-gray-100"
+                            >
+                                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <CheckSquare size={18} className="text-emerald-500"/> Previous Reports History
+                                </h2>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">{previousReports.length} completed</span>
+                                    {historyExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                                </div>
+                            </button>
+                            {historyExpanded && (
+                                <div className="border-t border-gray-100">
+                                    <ReportsTable 
+                                        reports={previousReports} 
+                                        loading={false} 
+                                        emptyMessage="No completed history found."
+                                        emptyCta={false}
+                                        onSelectReport={setSelectedReport}
+                                    />
+                                </div>
+                            )}
                         </div>
                     )}
-                </div>
+                </>
             )}
 
             {/* ── AI Reasoning Modal ── */}
