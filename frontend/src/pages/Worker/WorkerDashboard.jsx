@@ -410,19 +410,17 @@ const WorkerDashboard = () => {
 
     const { totalAssigned = 0, active = 0, completed = 0, rework = 0, completionRate = 0 } = stats || {};
 
-    // Split tasks: active vs completed
-    const activeTasks = tasks.filter(t => t.status !== "completed");
-
     const filteredTasks = activeTab === "all"
-        ? activeTasks
+        ? tasks.filter(t => t.status !== "completed")
         : activeTab === "active"
             ? tasks.filter(t => t.status === "assigned" || t.status === "in_progress")
             : tasks.filter(t => t.status === activeTab);
 
     const tabCounts = {
-        all: activeTasks.length,
+        all: tasks.filter(t => t.status !== "completed").length,
         active: tasks.filter(t => t.status === "assigned" || t.status === "in_progress").length,
         rework_required: tasks.filter(t => t.status === "rework_required").length,
+        completed: tasks.filter(t => t.status === "completed").length,
     };
 
     return (
@@ -444,7 +442,10 @@ const WorkerDashboard = () => {
             {/* ───── Stats Row ───── */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
                 {/* Completion Ring */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+                <div 
+                    onClick={() => setActiveTab("all")}
+                    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-300 hover:ring-2 hover:ring-emerald-100 hover:-translate-y-0.5 transition-all"
+                >
                     <CompletionRing rate={completionRate} />
                     <p className="text-xs text-gray-400 font-semibold mt-2 uppercase tracking-wider">
                         {completed} of {totalAssigned} Done
@@ -454,14 +455,18 @@ const WorkerDashboard = () => {
                 {/* Metric Cards */}
                 <div className="lg:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                        { label: "Total Tasks",  value: totalAssigned, icon: Briefcase,      accent: "gray" },
-                        { label: "Active Now",   value: active,        icon: ClipboardList,   accent: "blue" },
-                        { label: "Completed",    value: completed,     icon: CheckSquare,     accent: "emerald" },
-                        { label: "Rework",       value: rework,        icon: AlertTriangle,   accent: "red" },
-                    ].map(({ label, value, icon: Icon, accent }) => (
-                        <div key={label} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                        { label: "Total Tasks",  value: totalAssigned, icon: Briefcase,      accent: "gray",    action: () => setActiveTab("all") },
+                        { label: "Active Now",   value: active,        icon: ClipboardList,   accent: "blue",    action: () => setActiveTab("active") },
+                        { label: "Completed",    value: completed,     icon: CheckSquare,     accent: "emerald", action: () => setActiveTab("completed") },
+                        { label: "Rework",       value: rework,        icon: AlertTriangle,   accent: "red",     action: () => setActiveTab("rework_required") },
+                    ].map(({ label, value, icon: Icon, accent, action }) => (
+                        <div 
+                            key={label} 
+                            onClick={action}
+                            className={`bg-white p-5 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:border-${accent}-300 hover:ring-2 hover:ring-${accent}-100 hover:-translate-y-0.5 transition-all group`}
+                        >
                             <div className="flex items-center gap-3 mb-3">
-                                <div className={`bg-${accent}-100 p-2.5 rounded-xl text-${accent}-600`}><Icon size={20} /></div>
+                                <div className={`bg-${accent}-100 p-2.5 rounded-xl text-${accent}-600 group-hover:scale-110 transition-transform`}><Icon size={20} /></div>
                             </div>
                             <p className="text-3xl font-black text-gray-800">{value}</p>
                             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mt-1">{label}</p>
@@ -475,13 +480,15 @@ const WorkerDashboard = () => {
 
                 {/* Left: Task List */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Active Tasks */}
+                    {/* Tasks List Container */}
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                             <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                <ClipboardList size={18} className="text-gray-500"/> Active Tasks
+                                <ClipboardList size={18} className="text-gray-500"/> Tasks
                             </h2>
-                            <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{tabCounts.all} tasks</span>
+                            <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                                {tabCounts[activeTab]} results
+                            </span>
                         </div>
 
                         {/* Filter Tabs */}
@@ -490,6 +497,7 @@ const WorkerDashboard = () => {
                                 ["all", "All Active"],
                                 ["active", "In Progress"],
                                 ["rework_required", "Rework"],
+                                ["completed", "Completed History"]
                             ].map(([key, label]) => (
                                 <button
                                     key={key}
