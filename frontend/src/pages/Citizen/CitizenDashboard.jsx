@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 const CitizenDashboard = () => {
     const { user } = useAuth();
     // Dashboard Stats
-    const [stats, setStats] = useState({ totalSubmitted: 0, verified: 0, rejected: 0, pending: 0 });
+    const [stats, setStats] = useState({ totalSubmitted: 0, verified: 0, rejected: 0, pending: 0, cleanupAssigned: 0, cleaned: 0 });
     const [loadingStats, setLoadingStats] = useState(true);
 
     const fetchDashboardStats = async () => {
@@ -17,6 +17,8 @@ const CitizenDashboard = () => {
                 verified: data.verified,
                 rejected: data.rejected,
                 pending: data.pending,
+                cleanupAssigned: data.cleanupAssigned || 0,
+                cleaned: data.cleaned || 0,
             });
         } catch (error) {
             console.error("Error fetching stats:", error);
@@ -55,34 +57,33 @@ const CitizenDashboard = () => {
             </div>
 
             {/* ── Summary Cards ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100 flex items-center gap-4">
-                    <div className="p-4 bg-blue-50 text-blue-600 rounded-xl">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Reports</h3>
-                        <p className="mt-1 text-3xl font-black text-gray-900">{loadingStats ? "-" : stats.totalSubmitted}</p>
-                    </div>
-                </div>
-                <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100 flex items-center gap-4">
-                    <div className="p-4 bg-emerald-50 text-emerald-600 rounded-xl">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-semibold text-green-600 uppercase tracking-wider">Verified Clean</h3>
-                        <p className="mt-1 text-3xl font-black text-gray-900">{loadingStats ? "-" : stats.verified}</p>
-                    </div>
-                </div>
-                <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100 flex items-center gap-4">
-                    <div className="p-4 bg-gray-50 text-gray-600 rounded-xl">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Pending/Rejected</h3>
-                        <p className="mt-1 text-3xl font-black text-gray-900">{loadingStats ? "-" : stats.pending + stats.rejected}</p>
-                    </div>
-                </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                {[
+                    { label: "Total Reports", value: stats.totalSubmitted, color: "blue", filter: "",
+                      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /> },
+                    { label: "Verified", value: stats.verified, color: "emerald", filter: "verified_dump",
+                      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+                    { label: "Assigned", value: stats.cleanupAssigned, color: "purple", filter: "cleanup_assigned",
+                      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /> },
+                    { label: "Cleaned", value: stats.cleaned, color: "teal", filter: "cleaned",
+                      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /> },
+                    { label: "Rejected", value: stats.rejected, color: "rose", filter: "rejected",
+                      icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+                ].map(({ label, value, color, icon, filter }) => (
+                    <Link
+                        key={label}
+                        to={filter ? `/citizen/reports?filter=${filter}` : "/citizen/reports"}
+                        className={`group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all p-5 border border-gray-100 flex flex-col gap-3 cursor-pointer`}
+                    >
+                        <div className={`p-2.5 bg-${color}-50 text-${color}-600 rounded-xl w-fit group-hover:scale-110 transition-transform`}>
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">{icon}</svg>
+                        </div>
+                        <div>
+                            <p className="text-2xl font-black text-gray-900">{loadingStats ? "-" : value}</p>
+                            <p className={`text-[11px] font-semibold text-${color}-600 uppercase tracking-wider mt-0.5`}>{label}</p>
+                        </div>
+                    </Link>
+                ))}
             </div>
 
             {/* ── Quick Actions Grid ── */}

@@ -227,6 +227,8 @@ exports.getCitizenDashboard = async (req, res) => {
         const verified = await Report.countDocuments({ citizenId, status: "verified_dump" });
         const rejected = await Report.countDocuments({ citizenId, status: "rejected" });
         const pending = await Report.countDocuments({ citizenId, status: "pending_validation" });
+        const cleanupAssigned = await Report.countDocuments({ citizenId, status: "cleanup_assigned" });
+        const cleaned = await Report.countDocuments({ citizenId, status: "cleaned" });
 
         // Retrieve the most recent submissions up to 5
         const recentReports = await Report.find({ citizenId })
@@ -238,10 +240,76 @@ exports.getCitizenDashboard = async (req, res) => {
             verified,
             rejected,
             pending,
+            cleanupAssigned,
+            cleaned,
             recentReports
         });
     } catch (error) {
         console.error("Citizen Dashboard Error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// GET /api/dashboard/community-stats
+exports.getCommunityStats = async (req, res) => {
+    try {
+        const totalVerifiedDumps = await Report.countDocuments({ status: { $in: ["verified_dump", "cleanup_assigned", "cleaned"] } });
+        const totalCleanups = await Report.countDocuments({ status: "cleaned" });
+        const activeCitizens = await Report.distinct("citizenId");
+        const totalReports = await Report.countDocuments();
+
+        // Top contributors: citizens ranked by verified reports
+        const topContributors = await Report.aggregate([
+            {
+                $group: {
+                    _id: "$citizenId",
+                    totalReports: { $sum: 1 },
+                    verified: {
+                        $sum: {
+                            $cond: [
+                                { $in: ["$status", ["verified_dump", "cleanup_assigned", "cleaned"]] },
+                                1, 0
+                            ]
+                        }
+                    }
+                }
+            },
+            { $sort: { verified: -1 } },
+            { $limit: 10 },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    name: "$user.name",
+                    totalReports: 1,
+                    verified: 1,
+                    accuracy: {
+                        $cond: [
+                            { $gt: ["$totalReports", 0] },
+                            { $round: [{ $multiply: [{ $divide: ["$verified", "$totalReports"] }, 100] }, 0] },
+                            0
+                        ]
+                    }
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            totalVerifiedDumps,
+            activeCitizens: activeCitizens.length,
+            totalCleanups,
+            totalReports,
+            topContributors
+        });
+    } catch (error) {
+        console.error("Community Stats Error:", error);
         res.status(500).json({ message: error.message });
     }
 };

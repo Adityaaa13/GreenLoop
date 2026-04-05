@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../services/api";
-import { ChevronDown, ChevronUp, CheckSquare } from "lucide-react";
+import { ChevronDown, ChevronUp, CheckSquare, X } from "lucide-react";
 
 const getStatusBadge = (status) => {
     const badges = {
@@ -140,11 +141,23 @@ const ReportsTable = ({ reports, loading, emptyMessage, emptyCta, onSelectReport
     </div>
 );
 
+const VALID_STATUSES = ["pending_validation", "verified_dump", "cleanup_assigned", "cleaned", "rejected"];
+
+const STATUS_LABELS = {
+    pending_validation: "Pending",
+    verified_dump: "Verified",
+    cleanup_assigned: "Assigned",
+    cleaned: "Cleaned",
+    rejected: "Rejected",
+};
+
 const MyReports = () => {
     const [reports, setReports] = useState([]);
     const [loadingReports, setLoadingReports] = useState(true);
     const [selectedReport, setSelectedReport] = useState(null);
     const [historyExpanded, setHistoryExpanded] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [statusFilter, setStatusFilter] = useState(searchParams.get("filter") || "");
 
     const fetchMyReports = async () => {
         try {
@@ -161,15 +174,41 @@ const MyReports = () => {
         fetchMyReports();
     }, []);
 
-    const activeReports = reports.filter(r => !["cleaned", "rejected"].includes(r.status));
-    const previousReports = reports.filter(r => ["cleaned", "rejected"].includes(r.status));
+    // Sync filter from URL changes
+    useEffect(() => {
+        const filter = searchParams.get("filter") || "";
+        setStatusFilter(filter);
+    }, [searchParams]);
+
+    const clearFilter = () => {
+        setStatusFilter("");
+        setSearchParams({});
+    };
+
+    const allFiltered = statusFilter
+        ? reports.filter(r => r.status === statusFilter)
+        : reports;
+
+    const activeReports = allFiltered.filter(r => !["cleaned", "rejected"].includes(r.status));
+    const previousReports = allFiltered.filter(r => ["cleaned", "rejected"].includes(r.status));
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">My Reports</h1>
-                <p className="text-gray-500 mt-1">Track your active dump reports and view your community impact history.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">My Reports</h1>
+                    <p className="text-gray-500 mt-1">Track your active dump reports and view your community impact history.</p>
+                </div>
+                {statusFilter && VALID_STATUSES.includes(statusFilter) && (
+                    <button
+                        onClick={clearFilter}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors self-start"
+                    >
+                        Showing: <span className="font-bold text-gray-900">{STATUS_LABELS[statusFilter] || statusFilter}</span>
+                        <X size={14} />
+                    </button>
+                )}
             </div>
 
             {/* ── Active Reports Table ── */}

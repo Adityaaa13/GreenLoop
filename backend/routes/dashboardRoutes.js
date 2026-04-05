@@ -42,4 +42,11 @@ router.get(
     dashboardController.getCitizenDashboard
 );
 
+// GET /api/dashboard/community-stats
+router.get(
+    "/community-stats",
+    authorizeRoles("citizen"),
+    dashboardController.getCommunityStats
+);
+
 module.exports = router;

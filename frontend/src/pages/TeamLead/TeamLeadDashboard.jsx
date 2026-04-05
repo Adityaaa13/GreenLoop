@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
     ClipboardList, CheckSquare, AlertTriangle, Users, ArrowRight, 
-    TrendingUp, Eye, RefreshCw, ChevronDown, ChevronUp, MapPin, Image, Search
+    TrendingUp, Eye, RefreshCw, ChevronDown, ChevronUp, MapPin, Image
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format, formatDistanceToNow } from "date-fns";
@@ -187,7 +187,13 @@ const TeamLeadDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState("all");
-    const [searchQuery, setSearchQuery] = useState("");
+
+    const taskListRef = useRef(null);
+
+    const handleMetricClick = (tab) => {
+        setActiveTab(tab);
+        taskListRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
 
     const fetchData = async () => {
         try {
@@ -237,19 +243,19 @@ const TeamLeadDashboard = () => {
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     const filteredTasks = recentTasks.filter(t => {
-        const matchesTab = activeTab === "all" ? t.status !== "completed" : t.status === activeTab;
-        const searchLower = searchQuery.toLowerCase();
-        const matchesSearch = !searchQuery || 
-            t._id.toLowerCase().includes(searchLower) ||
-            t.reportId?.description?.toLowerCase().includes(searchLower) ||
-            t.workerId?.name?.toLowerCase().includes(searchLower);
-        return matchesTab && matchesSearch;
+        const matchesTab = activeTab === "all"
+            ? t.status !== "completed"
+            : activeTab === "completed"
+                ? t.status === "completed"
+                : t.status === activeTab;
+        return matchesTab;
     });
 
     const tabCounts = {
         all: recentTasks.filter(t => t.status !== "completed").length,
         assigned: recentTasks.filter(t => t.status === "assigned").length,
         rework_required: recentTasks.filter(t => t.status === "rework_required").length,
+        completed: recentTasks.filter(t => t.status === "completed").length,
     };
 
     return (
@@ -289,13 +295,17 @@ const TeamLeadDashboard = () => {
                 {/* Metric Cards */}
                 <div className="lg:col-span-3 grid grid-cols-3 gap-4">
                     {[
-                        { label: "Active Tasks", value: assignedTasks, icon: ClipboardList, accent: "blue" },
-                        { label: "Completed",    value: completedTasks, icon: CheckSquare,   accent: "emerald" },
-                        { label: "Rework",       value: reworkTasks,    icon: AlertTriangle,  accent: "red" },
-                    ].map(({ label, value, icon: Icon, accent }) => (
-                        <div key={label} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                        { label: "Active Tasks", value: assignedTasks, icon: ClipboardList, accent: "blue",    tab: "all" },
+                        { label: "Completed",    value: completedTasks, icon: CheckSquare,   accent: "emerald", tab: "completed" },
+                        { label: "Rework",       value: reworkTasks,    icon: AlertTriangle,  accent: "red",     tab: "rework_required" },
+                    ].map(({ label, value, icon: Icon, accent, tab }) => (
+                        <div
+                            key={label}
+                            onClick={() => handleMetricClick(tab)}
+                            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-gray-200 transition-all group"
+                        >
                             <div className="flex items-center gap-3 mb-3">
-                                <div className={`bg-${accent}-100 p-2.5 rounded-xl text-${accent}-600`}><Icon size={20} /></div>
+                                <div className={`bg-${accent}-100 p-2.5 rounded-xl text-${accent}-600 group-hover:scale-110 transition-transform`}><Icon size={20} /></div>
                             </div>
                             <p className="text-3xl font-black text-gray-800">{value}</p>
                             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mt-1">{label}</p>
@@ -308,7 +318,7 @@ const TeamLeadDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* Left: Task Tracker */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="lg:col-span-2 space-y-6" ref={taskListRef}>
                     {/* Active Tasks */}
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
@@ -318,10 +328,10 @@ const TeamLeadDashboard = () => {
                             <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{tabCounts.all} tasks</span>
                         </div>
 
-                        {/* Filters & Search */}
-                        <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white">
+                        {/* Filters */}
+                        <div className="px-6 py-4 bg-white">
                             <div className="flex gap-2 flex-wrap">
-                                {Object.entries({ all: "All Active", assigned: "Waiting", rework_required: "Rework" }).map(([key, label]) => (
+                                {Object.entries({ all: "All Active", assigned: "Waiting", rework_required: "Rework", completed: "Completed" }).map(([key, label]) => (
                                     <button
                                         key={key}
                                         onClick={() => setActiveTab(key)}
@@ -334,16 +344,6 @@ const TeamLeadDashboard = () => {
                                         {label} ({tabCounts[key]})
                                     </button>
                                 ))}
-                            </div>
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                                <input
-                                    type="text"
-                                    placeholder="Search tasks or workers..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-4 py-2 w-full sm:w-64 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none bg-gray-50/50"
-                                />
                             </div>
                         </div>
 
