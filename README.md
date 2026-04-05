@@ -8,6 +8,13 @@ GreenLoop is a full-stack web application that empowers citizens to report illeg
 
 ## 🚀 Tech Stack
 
+### Frontend (React)
+
+- **Framework:** React.js (via Vite)
+- **Styling:** Tailwind CSS + Lucide React Icons
+- **Routing:** React Router DOM
+- **Data Fetching:** Axios
+
 ### Backend (Node.js)
 
 - **Runtime:** Node.js
@@ -68,6 +75,15 @@ GreenLoop/
 │   ├── server.js                        # App entry point
 │   └── .env.example
 ├── frontend/
+│   ├── public/                  # Static assets
+│   ├── src/
+│   │   ├── components/          # Reusable UI components (Navbar, ProtectedRoutes)
+│   │   ├── pages/               # Dashboard pages (Admin, Citizen, TeamLead, Worker)
+│   │   ├── services/            # API and Axios configurations
+│   │   ├── App.jsx              # Main routing component
+│   │   └── main.jsx             # React entry point
+│   ├── vercel.json              # Vercel deployment routing config
+│   └── vite.config.js           # Vite build config
 └── README.md
 ```
 
