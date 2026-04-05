@@ -35,6 +35,7 @@ exports.createTeamLead = async (req, res) => {
 
 // POST /api/admin/create-worker
 // Admin creates a worker (requires teamLeadId)
+//Admin can create Workers
 exports.createWorker = async (req, res) => {
     try {
         const { name, email, password, teamLeadId } = req.body;
