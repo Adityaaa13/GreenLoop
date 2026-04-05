@@ -84,6 +84,15 @@ GreenLoop/
 
 ---
 
+## ✨ Core Features
+
+- **Interactive Metric Dashboards:** Clickable real-time metric cards across Citizen, Team Lead, and Worker dashboards that instantly filter task/report lists.
+- **Smart Rework Workflows:** Team Leads can flag cleanups that don't meet standards. Workers get alerted and can re-upload fresh cleanup evidence without creating duplicate tasks.
+- **Enhanced Security:** Stateless JWT invalidation tracking user password changes to immediately log off compromised sessions.
+- **Unified Views:** Unified, clean UI filtering for citizen reports avoiding split tables.
+
+---
+
 ## 🔌 API Endpoints
 
 ### Auth (`/api/auth`)
