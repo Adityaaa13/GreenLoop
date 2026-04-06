@@ -83,7 +83,7 @@ exports.getAdminDashboard = async (req, res) => {
         activityFeed.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         activityFeed = activityFeed.slice(0, 10);
 
-        // 6. Overdue Tasks (Assigned but not completed after 48 hours)
+        // 6. Overdue Tasks (Assigned but not completed after 48 hours) it will be shown in the dashboard
         const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
         const overdueActionItems = await Task.find({
             status: "assigned",
