@@ -111,4 +111,19 @@ const validateCleanupImage = async (imageUrl) => {
   }
 };
 
-module.exports = { validateDumpImage, validateCleanupImage };
+const pingAIService = () => {
+  try {
+    console.log("[AI] Pre-warming AI service...");
+    const parsed = new URL(AI_SERVICE_URL);
+    const lib = parsed.protocol === "https:" ? https : http;
+    const req = lib.request(
+        { hostname: parsed.hostname, port: parsed.port, path: "/", method: "GET" }
+    );
+    req.on("error", () => {}); // Ignore ping errors
+    req.end();
+  } catch (err) {
+    // Ignore internal errors
+  }
+};
+
+module.exports = { validateDumpImage, validateCleanupImage, pingAIService };

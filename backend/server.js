@@ -36,6 +36,13 @@ app.get("/", (req, res) => {
     res.json({ message: "GreenLoop API is running" });
 });
 
+// Pre-warm AI service (called continuously by frontend to prevent cold starts)
+const { pingAIService } = require("./services/aiService");
+app.get("/api/system/wakeup", (req, res) => {
+    pingAIService();
+    res.json({ message: "Waking up services" });
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

@@ -164,7 +164,7 @@ const CleanupUploadForm = ({ taskId, onComplete }) => {
                 {uploading ? (
                     <>
                         <Loader2 size={16} className="animate-spin" />
-                        AI is validating...
+                        Validating (May take ~60s if AI is asleep)
                     </>
                 ) : (
                     <>
@@ -405,7 +405,11 @@ const WorkerDashboard = () => {
         }
     };
 
-    useEffect(() => { fetchData(); }, []);
+    useEffect(() => { 
+        fetchData(); 
+        // Pre-warm AI service to prevent free tier cold starts
+        api.get("/system/wakeup").catch(() => {});
+    }, []);
 
     const refresh = () => { setLoading(true); setError(null); fetchData(); };
 
