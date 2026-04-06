@@ -48,7 +48,8 @@ const CleanupUploadForm = ({ taskId, onComplete }) => {
     const [gpsError, setGpsError] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [result, setResult] = useState(null);
-    const fileRef = useRef(null);
+    const fileRefCamera = useRef(null);
+    const fileRefGallery = useRef(null);
 
     // Auto-capture GPS on mount
     useEffect(() => {
@@ -104,21 +105,37 @@ const CleanupUploadForm = ({ taskId, onComplete }) => {
                 <Camera size={14} /> Upload Cleanup Proof
             </p>
 
-            {/* File Picker */}
-            <div
-                onClick={() => fileRef.current?.click()}
-                className="cursor-pointer border border-emerald-200 rounded-lg p-4 bg-white hover:bg-emerald-50 transition-colors flex flex-col items-center gap-2"
-            >
+            {/* File Picker Options */}
+            <div className="border border-emerald-200 rounded-lg p-4 bg-white hover:bg-emerald-50 transition-colors flex flex-col items-center gap-2">
                 {preview ? (
-                    <img src={preview} alt="Preview" className="w-full max-h-36 object-cover rounded-lg" />
+                    <div className="w-full">
+                        <img src={preview} alt="Preview" className="w-full max-h-36 object-cover rounded-lg mb-3" />
+                        <div className="flex gap-2 justify-center">
+                            <button type="button" onClick={() => fileRefCamera.current?.click()} className="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-1">
+                                <Camera size={14} /> Retake
+                            </button>
+                            <button type="button" onClick={() => fileRefGallery.current?.click()} className="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-1">
+                                <Image size={14} /> Change
+                            </button>
+                        </div>
+                    </div>
                 ) : (
                     <>
                         <Upload size={24} className="text-emerald-400" />
-                        <p className="text-xs text-gray-500 font-medium">Click to select cleanup photo</p>
+                        <p className="text-xs text-gray-500 font-medium mb-1">Upload your cleanup proof</p>
+                        <div className="flex gap-2 w-full mt-1">
+                            <button type="button" onClick={() => fileRefCamera.current?.click()} className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200 font-semibold text-xs flex justify-center items-center gap-1.5 transition-colors cursor-pointer">
+                                <Camera size={14} /> Take Photo
+                            </button>
+                            <button type="button" onClick={() => fileRefGallery.current?.click()} className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200 font-semibold text-xs flex justify-center items-center gap-1.5 transition-colors cursor-pointer">
+                                <Image size={14} /> Gallery
+                            </button>
+                        </div>
                     </>
                 )}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" />
+            <input ref={fileRefCamera} type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" />
+            <input ref={fileRefGallery} type="file" accept="image/*" onChange={handleFile} className="hidden" />
 
             {/* GPS Status */}
             <div className="flex items-center gap-2 text-xs">

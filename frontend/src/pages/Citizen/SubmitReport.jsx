@@ -28,7 +28,8 @@ const SubmitReport = () => {
     const [locationError, setLocationError] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
-    const fileInputRef = useRef(null);
+    const fileRefCamera = useRef(null);
+    const fileRefGallery = useRef(null);
 
     useEffect(() => {
         getLocation();
@@ -82,7 +83,8 @@ const SubmitReport = () => {
             setImage(null);
             setPreviewUrl(null);
             setDescription("");
-            if (fileInputRef.current) fileInputRef.current.value = "";
+            if (fileRefCamera.current) fileRefCamera.current.value = "";
+            if (fileRefGallery.current) fileRefGallery.current.value = "";
             setSuccessMessage("Report submitted successfully! Thank you for keeping our community clean.");
         } catch (error) {
             console.error("Error submitting report:", error);
@@ -143,10 +145,16 @@ const SubmitReport = () => {
                                             <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                     )}
-                                    <div className="flex justify-center text-sm text-gray-600 mt-4">
-                                        <label className="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none px-3 py-1 shadow-sm border border-gray-200">
-                                            <span>Upload a file</span>
-                                            <input ref={fileInputRef} type="file" className="sr-only" accept="image/*" onChange={handleImageChange} required={!image} />
+                                    <div className="flex justify-center text-sm text-gray-600 mt-4 gap-3">
+                                        <label className="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none px-3 py-1 shadow-sm border border-gray-200 flex items-center gap-1.5 transition-colors">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                            <span>Take Photo</span>
+                                            <input ref={fileRefCamera} type="file" className="sr-only" accept="image/*" capture="environment" onChange={handleImageChange} required={!image} />
+                                        </label>
+                                        <label className="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none px-3 py-1 shadow-sm border border-gray-200 flex items-center gap-1.5 transition-colors">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                            <span>Gallery</span>
+                                            <input ref={fileRefGallery} type="file" className="sr-only" accept="image/*" onChange={handleImageChange} required={!image} />
                                         </label>
                                     </div>
                                     <p className="text-xs text-gray-500 font-medium">PNG, JPG, WEBP up to 5MB</p>
