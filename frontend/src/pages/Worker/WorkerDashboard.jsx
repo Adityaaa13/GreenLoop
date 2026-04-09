@@ -87,7 +87,7 @@ const CleanupUploadForm = ({ taskId, onComplete }) => {
         try {
             const res = await api.post("/tasks/upload-cleanup", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
-                timeout: 120000, // 2 min timeout for AI processing
+                timeout: 300000, // 5 min timeout — AI service may need cold-start time
             });
             setResult({ success: true, message: res.data.message, task: res.data.task });
             onComplete?.();
@@ -164,7 +164,7 @@ const CleanupUploadForm = ({ taskId, onComplete }) => {
                 {uploading ? (
                     <>
                         <Loader2 size={16} className="animate-spin" />
-                        Validating (May take ~60s if AI is asleep)
+                        Validating — please wait up to 2 min if AI is waking up…
                     </>
                 ) : (
                     <>
