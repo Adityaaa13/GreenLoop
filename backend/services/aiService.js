@@ -12,8 +12,8 @@ const AI_SERVICE_URL = (
   process.env.PYTHON_AI_SERVICE_URL || "http://localhost:8000"
 ).replace(/\/$/, "");
 
-const MAX_RETRIES = 3;
-const INITIAL_RETRY_DELAY_MS = 5000; // 5 s → 10 s → 20 s
+const MAX_RETRIES = 5;
+const INITIAL_RETRY_DELAY_MS = 15000; // 15 s → 30 s → 60 s → 120 s
 
 /* ---------- helpers ---------- */
 
@@ -101,7 +101,7 @@ function postJSONOnce(url, body) {
       },
     );
 
-    req.setTimeout(90000, () => {
+    req.setTimeout(120000, () => {
       req.destroy(
         Object.assign(new Error("AI service request timed out"), {
           retryable: true,
@@ -122,9 +122,9 @@ function postJSONOnce(url, body) {
  * POST with automatic retries for cold-start / transient failures.
  */
 async function postJSON(url, body) {
-  // Send a wake-up ping before the first real attempt
+  // Send a wake-up ping and give the service time to start booting
   wakeUpPing();
-  await sleep(500); // small grace period
+  await sleep(3000); // 3 s grace period for cold-start to begin
 
   let lastError;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
