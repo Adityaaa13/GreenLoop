@@ -12,6 +12,8 @@ const AI_SERVICE_URL = (
   process.env.PYTHON_AI_SERVICE_URL || "http://localhost:8000"
 ).replace(/\/$/, "");
 
+console.log(`[AI] ===== AI Service configured with URL: ${AI_SERVICE_URL} =====`);
+
 const MAX_RETRIES = 5;
 const INITIAL_RETRY_DELAY_MS = 15000; // 15 s → 30 s → 60 s → 120 s
 
@@ -101,7 +103,7 @@ function postJSONOnce(url, body) {
       },
     );
 
-    req.setTimeout(120000, () => {
+    req.setTimeout(30000, () => {
       req.destroy(
         Object.assign(new Error("AI service request timed out"), {
           retryable: true,
@@ -120,12 +122,55 @@ function postJSONOnce(url, body) {
 
 /**
  * POST with automatic retries for cold-start / transient failures.
+ * Strategy:
+ *   1. Fire a wake-up ping and wait for the service health endpoint to respond.
+ *   2. Once the service is confirmed alive, send the actual POST.
+ *   3. Retry the POST on transient failures with short delays.
  */
 async function postJSON(url, body) {
-  // Send a wake-up ping and give the service time to start booting
+  // ── Phase 1: Wake the service up ──
+  console.log("[AI] Phase 1 — Waking up AI service…");
   wakeUpPing();
-  await sleep(3000); // 3 s grace period for cold-start to begin
+  // Give the service up to ~90 s to come alive (checked every 10 s)
+  const WAKE_CHECK_INTERVAL = 10000; // 10 s
+  const WAKE_MAX_CHECKS = 9;         // 9 × 10 s = 90 s max
+  let serviceAlive = false;
 
+  for (let i = 1; i <= WAKE_MAX_CHECKS; i++) {
+    try {
+      await new Promise((resolve, reject) => {
+        const parsed = new URL(AI_SERVICE_URL);
+        const lib = parsed.protocol === "https:" ? https : http;
+        const req = lib.request(
+          { hostname: parsed.hostname, port: parsed.port, path: "/health", method: "GET" },
+          (res) => {
+            let d = "";
+            res.on("data", (c) => (d += c));
+            res.on("end", () => {
+              if (res.statusCode === 200) resolve();
+              else reject(new Error(`health ${res.statusCode}`));
+            });
+          },
+        );
+        req.setTimeout(8000, () => req.destroy(new Error("health timeout")));
+        req.on("error", reject);
+        req.end();
+      });
+      console.log(`[AI] Service alive after check ${i}`);
+      serviceAlive = true;
+      break;
+    } catch {
+      console.log(`[AI] Wake check ${i}/${WAKE_MAX_CHECKS} — not ready yet`);
+      await sleep(WAKE_CHECK_INTERVAL);
+    }
+  }
+
+  if (!serviceAlive) {
+    console.warn("[AI] Service did not respond to health checks; proceeding anyway…");
+  }
+
+  // ── Phase 2: Send the actual request with retries ──
+  console.log("[AI] Phase 2 — Sending validation request…");
   let lastError;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -136,7 +181,7 @@ async function postJSON(url, body) {
         `[AI] Attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}`,
       );
       if (!err.retryable || attempt === MAX_RETRIES) break;
-      const delay = INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+      const delay = 5000 * attempt; // 5 s, 10 s, 15 s, 20 s
       console.log(`[AI] Retrying in ${delay / 1000}s …`);
       await sleep(delay);
     }
@@ -152,8 +197,11 @@ async function postJSON(url, body) {
  */
 const validateDumpImage = async (imageUrl) => {
   try {
-    console.log(`[AI] Validating dump image via Python service: ${imageUrl}`);
-    const result = await postJSON(`${AI_SERVICE_URL}/api/validate/dump`, {
+    const targetUrl = `${AI_SERVICE_URL}/api/validate/dump`;
+    console.log(`[AI] >>>>>> validateDumpImage CALLED <<<<<<`);
+    console.log(`[AI] Image URL: ${imageUrl}`);
+    console.log(`[AI] Posting to: ${targetUrl}`);
+    const result = await postJSON(targetUrl, {
       imageUrl,
     });
     console.log(

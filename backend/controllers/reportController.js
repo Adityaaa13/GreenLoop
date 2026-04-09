@@ -3,6 +3,7 @@ const { validateDumpImage } = require("../services/aiService");
 
 // POST /api/reports
 exports.createReport = async (req, res) => {
+    console.log(`[Report] >>>>>> createReport CALLED <<<<<<`);
     try {
         // 1. Validate inputs early
         if (!req.file) {
