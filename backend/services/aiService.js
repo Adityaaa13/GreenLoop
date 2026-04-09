@@ -9,8 +9,12 @@ const http = require("http");
 const https = require("https");
 
 const AI_SERVICE_URL = (
-  process.env.PYTHON_AI_SERVICE_URL || "http://localhost:8000"
+  process.env.PYTHON_AI_SERVICE_URL || ""
 ).replace(/\/$/, "");
+
+if (!AI_SERVICE_URL) {
+  console.error("[AI] WARNING: PYTHON_AI_SERVICE_URL is not set. AI validation will fail.");
+}
 
 console.log(`[AI] ===== AI Service configured with URL: ${AI_SERVICE_URL} =====`);
 
@@ -130,9 +134,9 @@ async function postJSON(url, body) {
   // ── Phase 1: Wake the service up ──
   console.log("[AI] Phase 1 — Waking up AI service…");
   wakeUpPing();
-  // Give the service up to ~90 s to come alive (checked every 10 s)
+  // Give the service up to ~150 s to come alive (checked every 10 s)
   const WAKE_CHECK_INTERVAL = 10000; // 10 s
-  const WAKE_MAX_CHECKS = 9;         // 9 × 10 s = 90 s max
+  const WAKE_MAX_CHECKS = 15;        // 15 × 10 s = 150 s max
   let serviceAlive = false;
 
   for (let i = 1; i <= WAKE_MAX_CHECKS; i++) {
