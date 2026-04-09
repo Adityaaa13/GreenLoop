@@ -11,7 +11,11 @@ const cors = require("cors");
 dotenv.config();
 
 // Connect to MongoDB
-connectDB();
+connectDB().then(() => {
+    // Pre-warm AI service immediately after DB connection
+    const { pingAIService } = require("./services/aiService");
+    pingAIService();
+});
 
 const app = express();
 

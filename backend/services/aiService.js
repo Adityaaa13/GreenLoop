@@ -15,7 +15,6 @@ const AI_SERVICE_URL = (
 console.log(`[AI] ===== AI Service configured with URL: ${AI_SERVICE_URL} =====`);
 
 const MAX_RETRIES = 5;
-const INITIAL_RETRY_DELAY_MS = 15000; // 15 s → 30 s → 60 s → 120 s
 
 /* ---------- helpers ---------- */
 
@@ -246,8 +245,23 @@ const validateCleanupImage = async (imageUrl) => {
 
 /** Pre-warm ping (exported for server startup use). */
 const pingAIService = () => {
-  console.log("[AI] Pre-warming AI service...");
-  wakeUpPing();
+    console.log("[AI] Pre-warming AI service...");
+    // Hit root
+    wakeUpPing();
+    
+    // Also hit /health specifically as Phase 1 does
+    try {
+        const parsed = new URL(AI_SERVICE_URL);
+        const lib = parsed.protocol === "https:" ? https : http;
+        const req = lib.request({
+            hostname: parsed.hostname,
+            port: parsed.port,
+            path: "/health",
+            method: "GET",
+        });
+        req.on("error", (e) => console.log(`[AI] Pre-warm health check error: ${e.message}`));
+        req.end();
+    } catch (_) { }
 };
 
 module.exports = { validateDumpImage, validateCleanupImage, pingAIService };

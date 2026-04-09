@@ -34,6 +34,7 @@ const SubmitReport = () => {
     useEffect(() => {
         getLocation();
         // Pre-warm AI service to prevent free tier cold starts
+        console.log("Pre-warming AI service from frontend...");
         api.get("/system/wakeup").catch(() => {});
     }, []);
 
