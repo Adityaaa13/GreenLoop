@@ -18,8 +18,11 @@ const Login = () => {
         try {
             const data = await login(form.email, form.password);
             
-            // Wake up AI service early upon successful login
+            // Wake up AI service early upon successful login via backend ping
             api.get("/system/wakeup").catch(() => {});
+            // Directly hit the AI service to force cold-start just in case the backend fails
+            fetch("https://greenloop-ai-service-cykf.onrender.com/", { mode: "no-cors" }).catch(() => {});
+            fetch("https://greenloop-ai-service-cykf.onrender.com/health", { mode: "no-cors" }).catch(() => {});
             
             // Route based on role
             const role = data.user.role;

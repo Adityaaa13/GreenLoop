@@ -73,6 +73,7 @@ app.add_middleware(
 @app.get("/")
 async def root():
     """Health check endpoint"""
+    logger.info("🟢 Received Wakeup Ping at '/' endpoint!")
     return {
         "status": "online",
         "service": "Garbage Validation System",
@@ -82,6 +83,7 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Detailed health check endpoint"""
+    logger.info("🟢 Received Health Check Ping at '/health' endpoint!")
     api_key_configured = bool(os.getenv("GOOGLE_API_KEY"))
     
     return {
