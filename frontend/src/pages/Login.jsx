@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import api from "../services/api";
 
 const Login = () => {
     const { login, loading } = useAuth();
@@ -16,6 +17,9 @@ const Login = () => {
         setError("");
         try {
             const data = await login(form.email, form.password);
+            
+            // Wake up AI service early upon successful login
+            api.get("/system/wakeup").catch(() => {});
             
             // Route based on role
             const role = data.user.role;

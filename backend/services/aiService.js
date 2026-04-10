@@ -106,7 +106,7 @@ function postJSONOnce(url, body) {
       },
     );
 
-    req.setTimeout(30000, () => {
+    req.setTimeout(120000, () => {
       req.destroy(
         Object.assign(new Error("AI service request timed out"), {
           retryable: true,
