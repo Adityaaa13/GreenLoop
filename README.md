@@ -100,6 +100,14 @@ GreenLoop/
 
 ---
 
+## 📱 Device Usage & GPS Accuracy (Important Note)
+
+GreenLoop is designed to be used in real-world field conditions via **mobile phones**:
+- When used on a **smartphone**, the application utilizes the device's native hardware GPS receiver to drop highly precise location pins (usually within 3-5 meters). 
+- If you are testing the application or submitting reports from a **laptop/desktop**, your browser falls back to using Wi-Fi Positioning (WPS) or IP Address geolocation. This can result in location points appearing up to a few hundred meters away from your actual physical location. This is completely expected behavior for non-GPS hardware and automatically resolves when used on mobile devices.
+
+---
+
 ## ✨ Core Features
 
 - **Interactive Metric Dashboards:** Clickable real-time metric cards across Citizen, Team Lead, and Worker dashboards that instantly filter task/report lists.
