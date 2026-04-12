@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import { Mail, Lock, ArrowRight, Leaf, ShieldCheck, Zap } from "lucide-react";
 
 const Login = () => {
     const { login, loading } = useAuth();
@@ -9,15 +10,14 @@ const Login = () => {
     const [form, setForm] = useState({ email: "", password: "" });
     const [error, setError] = useState("");
 
-    const handleChange = (e) =>
-        setForm({ ...form, [e.target.name]: e.target.value });
+    const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
         try {
             const data = await login(form.email, form.password);
-
+            
             // Wake up AI service early upon successful login
             api.get("/system/wakeup").catch(() => { });
 
@@ -26,120 +26,104 @@ const Login = () => {
             if (role === "admin") navigate("/admin");
             else if (role === "worker") navigate("/worker");
             else if (role === "team_lead") navigate("/team-lead");
-            else navigate("/citizen"); // default citizen
-
+            else navigate("/citizen"); 
         } catch (err) {
             setError(err.response?.data?.message || "Login failed");
         }
     };
 
     return (
-        <div className="min-h-screen flex bg-white">
-            {/* Left Side - Branding/Graphic */}
-            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-emerald-800 via-teal-900 to-emerald-950 items-center justify-center p-12">
-                {/* Decorative background circles */}
-                <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-                    <div className="absolute -top-1/4 -right-1/4 w-3/4 h-3/4 bg-emerald-500/20 rounded-full blur-3xl mix-blend-overlay"></div>
-                    <div className="absolute -bottom-1/4 -left-1/4 w-2/3 h-2/3 bg-teal-500/20 rounded-full blur-3xl mix-blend-overlay"></div>
-                </div>
+        <div className="min-h-screen flex items-center justify-center bg-[#0a192f] relative overflow-hidden font-sans">
+            {/* Dynamic Glassmorphism Backgrounds */}
+            <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-teal-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-pulse"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-emerald-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-pulse" style={{ animationDelay: '2s' }}></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/20 rounded-full mix-blend-overlay filter blur-[128px] opacity-30"></div>
 
-                <div className="relative z-10 text-white max-w-lg animate-in fade-in slide-in-from-left-8 duration-1000">
-                    <div className="w-16 h-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center mb-8 shadow-2xl">
-                        <svg className="w-8 h-8 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight tracking-tight">
-                        Keep your city <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200">beautiful.</span>
+            <div className="w-full max-w-6xl mx-auto p-6 z-10 flex flex-col lg:flex-row-reverse items-center gap-12 lg:gap-24">
+                
+                {/* Right Side: Brand & Value Prop */}
+                <div className="w-full lg:w-1/2 text-white space-y-8 animate-in fade-in slide-in-from-right-8 duration-700">
+                    <Link to="/" className="inline-flex items-center gap-2 group mb-4">
+                        <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 group-hover:bg-white/20 transition-all shadow-[0_0_15px_rgba(20,184,166,0.5)]">
+                            <Leaf size={24} className="text-teal-300" />
+                        </div>
+                        <span className="text-3xl font-black tracking-tight">GreenLoop</span>
+                    </Link>
+
+                    <h1 className="text-5xl lg:text-6xl font-black leading-tight">
+                        Welcome <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-emerald-300">Back.</span>
                     </h1>
-                    <p className="text-emerald-100/80 text-lg font-medium leading-relaxed mb-8">
-                        Join thousands of citizens using AI-powered reporting to help city workers identify and clean up illegal dumping faster than ever before.
+                    
+                    <p className="text-lg text-teal-100/70 leading-relaxed max-w-md font-medium">
+                        Log in to track your reports, assign new tasks, or submit cleanup evidence. The city depends on you.
                     </p>
-                    <div className="flex items-center gap-4 text-emerald-200/60 text-sm font-semibold uppercase tracking-widest">
-                        <span>Smart</span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></span>
-                        <span>Efficient</span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></span>
-                        <span>Clean</span>
+
+                    <div className="space-y-6 pt-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/10"><ShieldCheck size={20} className="text-teal-400" /></div>
+                            <p className="text-sm font-semibold text-teal-50">Secure Enclave Access</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/10"><Zap size={20} className="text-amber-400" /></div>
+                            <p className="text-sm font-semibold text-teal-50">Real-time Task Updates</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-gray-50/50">
-                <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 fill-mode-both">
-                    <div className="text-center lg:text-left">
-                        <h2 className="text-3xl font-black text-gray-900 tracking-tight">Welcome back</h2>
-                        <p className="mt-3 text-gray-500 font-medium">Please enter your details to sign in.</p>
-                    </div>
+                {/* Left Side: Glass Form */}
+                <div className="w-full lg:w-[480px] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
+                    <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-8 sm:p-10 rounded-[2rem] shadow-2xl relative overflow-hidden">
+                        
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
 
-                    {error && (
-                        <div className="bg-rose-50 border border-rose-100 text-rose-600 text-sm font-semibold px-4 py-3 rounded-xl flex items-center gap-3">
-                            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            {error}
-                        </div>
-                    )}
+                        <div className="relative z-10">
+                            <h2 className="text-3xl font-black text-white mb-2">Sign In</h2>
+                            <p className="text-teal-100/60 font-medium mb-8">Access your GreenLoop dashboard.</p>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div className="space-y-1">
-                            <label className="text-sm font-bold text-gray-700 pl-1">Email address</label>
-                            <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <svg className="h-5 w-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" /></svg>
+                            {error && (
+                                <div className="bg-rose-500/20 border border-rose-500/50 text-rose-200 text-sm font-semibold px-4 py-3 rounded-xl mb-6 flex items-center gap-3 backdrop-blur-md">
+                                    <ShieldCheck size={18} className="shrink-0" />
+                                    {error}
                                 </div>
-                                <input
-                                    id="login-email"
-                                    type="email"
-                                    name="email"
-                                    value={form.email}
-                                    onChange={handleChange}
-                                    required
-                                    className="block w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 hover:border-gray-300 transition-all shadow-sm outline-none"
-                                    placeholder="you@example.com"
-                                />
-                            </div>
-                        </div>
+                            )}
 
-                        <div className="space-y-1">
-                            <div className="flex items-center justify-between pl-1 pr-2">
-                                <label className="text-sm font-bold text-gray-700">Password</label>
-                                <a href="#" className="text-sm font-bold text-emerald-600 hover:text-emerald-500 transition-colors">Forgot password?</a>
-                            </div>
-                            <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <svg className="h-5 w-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                            <form onSubmit={handleSubmit} className="space-y-5">
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <Mail size={18} className="text-teal-200/50 group-focus-within:text-teal-300 transition-colors" />
+                                    </div>
+                                    <input type="email" name="email" value={form.email} onChange={handleChange} required
+                                        className="w-full bg-white/5 border border-white/10 text-white placeholder-teal-100/30 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400/50 transition-all backdrop-blur-sm peer" placeholder="Email Address" />
                                 </div>
-                                <input
-                                    id="login-password"
-                                    type="password"
-                                    name="password"
-                                    value={form.password}
-                                    onChange={handleChange}
-                                    required
-                                    className="block w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 hover:border-gray-300 transition-all shadow-sm outline-none"
-                                    placeholder="••••••••"
-                                />
+
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <Lock size={18} className="text-teal-200/50 group-focus-within:text-teal-300 transition-colors" />
+                                    </div>
+                                    <input type="password" name="password" value={form.password} onChange={handleChange} required minLength={6}
+                                        className="w-full bg-white/5 border border-white/10 text-white placeholder-teal-100/30 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400/50 transition-all backdrop-blur-sm peer" placeholder="Password" />
+                                </div>
+                                
+                                <div className="flex justify-end px-1 mt-2">
+                                    <a href="#" className="text-sm font-medium text-teal-300 hover:text-white transition-colors">Forgot password?</a>
+                                </div>
+
+                                <button type="submit" disabled={loading}
+                                    className="w-full mt-6 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-[#0a192f] font-black text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:shadow-[0_0_30px_rgba(20,184,166,0.5)] transition-all transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 flex items-center justify-center gap-2 group">
+                                    {loading ? "Signing in..." : "Sign In"}
+                                    {!loading && <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />}
+                                </button>
+                            </form>
+
+                            <div className="mt-8 text-center text-sm font-medium text-teal-100/50">
+                                Don't have an account?{" "}
+                                <Link to="/register" className="text-teal-300 hover:text-white transition-colors underline underline-offset-4">Sign up</Link>
                             </div>
                         </div>
-
-                        <button
-                            id="login-submit"
-                            type="submit"
-                            disabled={loading}
-                            className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:-translate-y-0.5 active:translate-y-0 mt-6"
-                        >
-                            {loading ? "Signing in…" : "Sign In"}
-                        </button>
-                    </form>
-
-                    <div className="text-center pt-4 border-t border-gray-200/60">
-                        <p className="text-sm text-gray-500 font-medium">
-                            Don't have an account?{" "}
-                            <Link to="/register" className="text-emerald-600 font-bold hover:text-emerald-500 hover:underline transition-all">
-                                Create one now
-                            </Link>
-                        </p>
                     </div>
                 </div>
+
             </div>
         </div>
     );

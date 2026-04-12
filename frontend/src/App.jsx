@@ -2,9 +2,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
+import PublicLayout from "./layouts/PublicLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Landing from "./pages/Landing";
+import About from "./pages/Public/About";
+import Contact from "./pages/Public/Contact";
 import CitizenDashboard from "./pages/Citizen/CitizenDashboard";
 import SubmitReport from "./pages/Citizen/SubmitReport";
 import MyReports from "./pages/Citizen/MyReports";
@@ -144,9 +147,13 @@ function App() {
             />
           </Route>
 
-          {/* Catch-all */}
-          <Route path="/" element={<Landing />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Public Layout and Catch-all */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<Landing />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </AuthProvider>
