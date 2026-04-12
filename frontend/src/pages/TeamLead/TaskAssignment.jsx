@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Send, MapPin, UserSquare2, CheckSquare } from "lucide-react";
+import { Send, MapPin, UserSquare2, CheckSquare, Clock, AlignLeft, BarChart2 } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
 import api from "../../services/api";
 
 const TaskAssignmentItem = ({ report, workers, onAssign }) => {
@@ -29,16 +30,46 @@ const TaskAssignmentItem = ({ report, workers, onAssign }) => {
             {/* Details side */}
             <div className="p-5 flex-1 flex flex-col justify-center">
                 <div className="flex items-start justify-between mb-4">
-                    <div>
+                    <div className="flex-1 mr-4">
                         <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 uppercase tracking-wide">
-                            <MapPin size={16} className="text-emerald-500" />
-                            Target Zone #{report._id.slice(-6)}
+                            <MapPin size={16} className="text-emerald-500 shrink-0" />
+                            {report.location || `Target Zone #${report._id.slice(-6)}`}
                         </h4>
-                        <p className="text-xs text-gray-500 mt-1 pl-5">
-                            AI Confidence: {report.aiConfidence ? (report.aiConfidence * 100).toFixed(0) + "%" : "N/A"}
-                        </p>
+                        
+                        <div className="text-xs text-gray-600 mt-2.5 pl-5 space-y-2">
+                            {report.description && (
+                                <p className="flex items-start gap-1.5 text-gray-700 italic border-l-2 border-gray-200 pl-2">
+                                    <AlignLeft size={13} className="shrink-0 mt-0.5 text-gray-400" />
+                                    <span className="line-clamp-2">{report.description}</span>
+                                </p>
+                            )}
+                            <div className="flex items-center gap-4 flex-wrap">
+                                <p className="flex items-center gap-1.5">
+                                    <Clock size={13} className="text-gray-400" />
+                                    <span className="font-semibold text-gray-700">Reported:</span> 
+                                    {report.createdAt ? format(new Date(report.createdAt), "MMM d, yyyy, h:mm a") : "N/A"}
+                                    {report.createdAt && <span className="text-gray-400">({formatDistanceToNow(new Date(report.createdAt), { addSuffix: true })})</span>}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-4 flex-wrap">
+                                {report.gps && report.gps.lat && (
+                                    <p className="flex items-center gap-1.5">
+                                        <MapPin size={13} className="text-gray-400" />
+                                        <span className="font-semibold text-gray-700">GPS:</span> 
+                                        {report.gps.lat.toFixed(4)}, {report.gps.lng.toFixed(4)}
+                                    </p>
+                                )}
+                                <p className="flex items-center gap-1.5">
+                                    <BarChart2 size={13} className="text-gray-400" />
+                                    <span className="font-semibold text-gray-700">AI Confidence:</span>
+                                    <span className={report.aiConfidence > 0.8 ? "text-emerald-600 font-bold" : "text-yellow-600 font-bold"}>
+                                        {report.aiConfidence ? (report.aiConfidence * 100).toFixed(0) + "%" : "N/A"}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2.5 py-1 rounded-full font-semibold border border-yellow-200">
+                    <span className="shrink-0 bg-yellow-100 text-yellow-800 text-xs px-2.5 py-1 rounded-full font-semibold border border-yellow-200">
                         Pending Dispatch
                     </span>
                 </div>

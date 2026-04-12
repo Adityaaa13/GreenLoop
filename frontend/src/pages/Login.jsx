@@ -17,20 +17,17 @@ const Login = () => {
         setError("");
         try {
             const data = await login(form.email, form.password);
-            
-            // Wake up AI service early upon successful login via backend ping
-            api.get("/system/wakeup").catch(() => {});
-            // Directly hit the AI service to force cold-start just in case the backend fails
-            fetch("https://greenloop-ai-service-cykf.onrender.com/", { mode: "no-cors" }).catch(() => {});
-            fetch("https://greenloop-ai-service-cykf.onrender.com/health", { mode: "no-cors" }).catch(() => {});
-            
+
+            // Wake up AI service early upon successful login
+            api.get("/system/wakeup").catch(() => { });
+
             // Route based on role
             const role = data.user.role;
             if (role === "admin") navigate("/admin");
             else if (role === "worker") navigate("/worker");
             else if (role === "team_lead") navigate("/team-lead");
             else navigate("/citizen"); // default citizen
-            
+
         } catch (err) {
             setError(err.response?.data?.message || "Login failed");
         }
@@ -45,7 +42,7 @@ const Login = () => {
                     <div className="absolute -top-1/4 -right-1/4 w-3/4 h-3/4 bg-emerald-500/20 rounded-full blur-3xl mix-blend-overlay"></div>
                     <div className="absolute -bottom-1/4 -left-1/4 w-2/3 h-2/3 bg-teal-500/20 rounded-full blur-3xl mix-blend-overlay"></div>
                 </div>
-                
+
                 <div className="relative z-10 text-white max-w-lg animate-in fade-in slide-in-from-left-8 duration-1000">
                     <div className="w-16 h-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center mb-8 shadow-2xl">
                         <svg className="w-8 h-8 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
