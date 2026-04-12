@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Send, MapPin, UserSquare2, CheckSquare, Clock, AlignLeft, BarChart2 } from "lucide-react";
+import { Send, MapPin, UserSquare2, CheckSquare, Clock, AlignLeft } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import api from "../../services/api";
 
@@ -56,16 +56,16 @@ const TaskAssignmentItem = ({ report, workers, onAssign }) => {
                                     <p className="flex items-center gap-1.5">
                                         <MapPin size={13} className="text-gray-400" />
                                         <span className="font-semibold text-gray-700">GPS:</span> 
-                                        {report.gps.lat.toFixed(4)}, {report.gps.lng.toFixed(4)}
+                                        <a 
+                                            href={`https://www.google.com/maps?q=${report.gps.lat},${report.gps.lng}`} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-emerald-600 hover:text-emerald-700 underline font-medium"
+                                        >
+                                            View on Maps
+                                        </a>
                                     </p>
                                 )}
-                                <p className="flex items-center gap-1.5">
-                                    <BarChart2 size={13} className="text-gray-400" />
-                                    <span className="font-semibold text-gray-700">AI Confidence:</span>
-                                    <span className={report.aiConfidence > 0.8 ? "text-emerald-600 font-bold" : "text-yellow-600 font-bold"}>
-                                        {report.aiConfidence ? (report.aiConfidence * 100).toFixed(0) + "%" : "N/A"}
-                                    </span>
-                                </p>
                             </div>
                         </div>
                     </div>
