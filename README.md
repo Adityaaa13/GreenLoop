@@ -11,7 +11,7 @@ GreenLoop is a full-stack web application that empowers citizens to report illeg
 ### Frontend (React)
 
 - **Framework:** React.js (via Vite)
-- **Styling:** Tailwind CSS + Lucide React Icons
+- **Styling:** Tailwind CSS +  Lucide React Icons
 - **Routing:** React Router DOM
 - **Data Fetching:** Axios
 
@@ -48,7 +48,7 @@ GreenLoop/
 │   │   ├── taskController.js            # Cleanup task management
 │   │   └── dashboardController.js       # Analytics & stats
 │   ├── middleware/
-│   │   ├── auth.js                      # JWT authentication middleware
+│   │   ├── auth.js                      # (JWT) authentication middleware
 │   │   └── roleAuth.js                  # Role-based access control
 │   ├── models/
 │   │   ├── User.js                      # User model
